@@ -1,16 +1,18 @@
 package main
 
-import 	(
+import (
+	"fmt"
 	"net/http"
-	 "fmt"
- )
 
-func handlerFunc(w http.ResponseWriter, r *http.Request)  {
+	"github.com/gorilla/mux"
+)
+
+func handlerFunc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "text/html")
-	if(r.URL.Path == "/"){
+	if r.URL.Path == "/" {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "<h1>Hey dog lover! Welcome!</h1>")
-	} else if(r.URL.Path == "/contact") {
+	} else if r.URL.Path == "/contact" {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "To get in touch, please drop us a line at: <a href =\"mailto:support@lenslocked.com\"> support@lenslocked.com</a>")
 	} else {
@@ -19,7 +21,10 @@ func handlerFunc(w http.ResponseWriter, r *http.Request)  {
 	}
 }
 
-func main()  {
-	http.HandleFunc("/", handlerFunc)
-	http.ListenAndServe(":8080", nil)
+func main() {
+	r := mux.NewRouter()
+	r.HandleFunc("/", handlerFunc)
+	r.HandleFunc("/contact", handlerFunc)
+	// http.HandleFunc("/", handlerFunc)
+	http.ListenAndServe(":8080", r)
 }
