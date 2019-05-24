@@ -4,7 +4,9 @@ import "html/template"
 
 // NewView is a function that creates and returns the new view with all the default files included
 func NewView(layout string, files ...string) *View {
-	files = append(files, "views/layouts/bootstrap.gohtml",
+	files = append(files,
+		"views/layouts/navbar.gohtml",
+		"views/layouts/bootstrap.gohtml",
 		"views/layouts/footer.gohtml")
 	t, err := template.ParseFiles(files...)
 
