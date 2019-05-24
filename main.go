@@ -14,12 +14,12 @@ var (
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "text/html")
-	homeView.Render(w, nil)
+	must(homeView.Render(w, nil))
 }
 
 func contact(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "text/html")
-	contactView.Render(w, nil)
+	must(contactView.Render(w, nil))
 }
 
 func main() {
@@ -30,4 +30,10 @@ func main() {
 	r.HandleFunc("/", home)
 	r.HandleFunc("/contact", contact)
 	http.ListenAndServe(":8080", r)
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
