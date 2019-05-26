@@ -5,7 +5,14 @@ import (
 	"net/http"
 
 	"../views"
+	"github.com/gorilla/schema"
 )
+
+// SignupForm is a struct to hold our data, e.g. email and password
+type SignupForm struct {
+	Email    string `schema:"email"`
+	Password string `schema:"password"`
+}
 
 // NewUser creates a new user view - capt. obvious strikes again!!!
 // This function shall panic if there is some err.
@@ -33,7 +40,10 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
 		panic(err)
 	}
-	fmt.Fprintln(w, r.PostForm["email"])
-	fmt.Fprintln(w, r.PostForm["password"])
-	fmt.Fprintln(w, "This is a fake passage. Pretend we created a user account...")
+	dec := schema.NewDecoder()
+	var form SignupForm
+	if err := dec.Decode(&form, r.PostForm); err != nil {
+		panic(err)
+	}
+	fmt.Fprintln(w, form)
 }
