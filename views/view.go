@@ -8,11 +8,14 @@ import (
 
 var (
 	layoutDir   = "views/layouts/"
+	templateDir = "views/"
 	templateExt = ".gohtml"
 )
 
 // NewView is a function that creates and returns the new view with all the default files included
 func NewView(layout string, files ...string) *View {
+	addTemplatePath(files)
+	addTemplateExt(files)
 	files = append(files, layoutFiles()...)
 	t, err := template.ParseFiles(files...)
 
@@ -24,7 +27,22 @@ func NewView(layout string, files ...string) *View {
 		Template: t,
 		Layout:   layout,
 	}
+}
 
+// addTemplatePath takes in a slice of strings and forms appropriate filepaths
+//Eg: if you input {"home"} you will get {"views/home"}
+func addTemplatePath(files []string) {
+	for i, f := range files {
+		files[i] = templateDir + f
+	}
+}
+
+// addTemplatePath takes in a slice of strings and forms appropriate filepaths
+//Eg: if you input {"views/home"} you will get {"views/home.gohtml"}
+func addTemplateExt(files []string) {
+	for i, f := range files {
+		files[i] = f + templateExt
+	}
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
