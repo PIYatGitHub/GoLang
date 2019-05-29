@@ -4,6 +4,8 @@ import (
 	"errors"
 
 	"github.com/jinzhu/gorm"
+	// added it not to get confused as of what is needed to run this...
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var (
