@@ -42,6 +42,11 @@ func (us *UserService) ByID(id uint) (*User, error) {
 	}
 }
 
+//Create does take care of creating a user oor return an error if there is sth wrong...
+func (us *UserService) Create(user *User) error {
+	return us.db.Create(user).Error
+}
+
 // Close will terminate the connection to the DB!
 func (us *UserService) Close() error {
 	return us.db.Close()
