@@ -49,7 +49,7 @@ func (us *UserService) Close() error {
 
 //DestructiveReset deletes the users table. NEVER EVER RUN IN PROD!!!!!
 func (us *UserService) DestructiveReset() {
-	us.db.DropTableIfExists(&User)
+	us.db.DropTableIfExists(&User{})
 	us.db.AutoMigrate(&User{})
 }
 
