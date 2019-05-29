@@ -10,7 +10,9 @@ import (
 
 var (
 	//ErrNotFound is returned whenever you cannot find the resource at the DB
-	ErrNotFound = errors.New("models:resource not found")
+	ErrNotFound = errors.New("models: resource not found")
+	// ErrInvalidID is returned if you attempt to pass in an Id <= 0
+	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
 )
 
 // NewUserService will open a singular connection to the DB!
@@ -66,6 +68,15 @@ func (us *UserService) Create(user *User) error {
 //Update does take care of updating a user or returns an error if there is sth wrong...
 func (us *UserService) Update(user *User) error {
 	return us.db.Save(user).Error
+}
+
+//Delete is a dangerous function as it deletes the user by ID. Do not use it if you are not sure...
+func (us *UserService) Delete(id uint) error {
+	if id == 0 {
+		return ErrInvalidID
+	}
+	user := User{Model: gorm.Model{ID: id}}
+	return us.db.Delete(&user).Error
 }
 
 // Close will terminate the connection to the DB!
