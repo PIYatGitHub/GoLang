@@ -47,8 +47,11 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	return &user, err
 }
 
-func first(db *gorm.DB, user *User) error {
-	err := db.First(user).Error
+// first is a function to get the first match from the DB.
+// DO MOT FORGET to give it a pointer on the dst object, otherwise
+//you may run into major pizdec!
+func first(db *gorm.DB, dst interface{}) error {
+	err := db.First(dst).Error
 	if err == gorm.ErrRecordNotFound {
 		return ErrNotFound
 	}
