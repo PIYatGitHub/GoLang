@@ -44,9 +44,29 @@ func (us *UserService) ByID(id uint) (*User, error) {
 	}
 }
 
-//Create does take care of creating a user oor return an error if there is sth wrong...
+//ByEmail will lookup the user by his/her email address;
+// it will return user,nil or nil for the user and specific user (only one)
+func (us *UserService) ByEmail(email string) (*User, error) {
+	var user User
+	err := us.db.Where("email = ?", email).First(&user).Error
+	switch err {
+	case nil:
+		return &user, nil
+	case gorm.ErrRecordNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
+//Create does take care of creating a user or returns an error if there is sth wrong...
 func (us *UserService) Create(user *User) error {
 	return us.db.Create(user).Error
+}
+
+//Update does take care of updating a user or returns an error if there is sth wrong...
+func (us *UserService) Update(user *User) error {
+	return us.db.Save(user).Error
 }
 
 // Close will terminate the connection to the DB!

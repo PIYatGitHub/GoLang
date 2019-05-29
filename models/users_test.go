@@ -54,6 +54,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 }
+
 func TestUserByID(t *testing.T) {
 	us, err := testingUserService()
 	if err != nil {
@@ -74,3 +75,24 @@ func TestUserByID(t *testing.T) {
 		t.Errorf("Expected to find the user at position 1, but failed...")
 	}
 }
+
+// func TestUserUpdate(t *testing.T) {
+// 	us, err := testingUserService()
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	user := User{
+// 		Name:  "Mika Hackinen",
+// 		Email: "mika@hackinen.io",
+// 	}
+// 	err = us.Create(&user)
+//
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	user.Email = "whatever@mika.co.uk"
+// 	err = us.Update(&user)
+// 	if err != nil {
+// 		t.Errorf("Expected to have the user updated, but failed...")
+// 	}
+// }
