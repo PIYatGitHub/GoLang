@@ -54,3 +54,23 @@ func TestCreateUser(t *testing.T) {
 	}
 
 }
+func TestUserByID(t *testing.T) {
+	us, err := testingUserService()
+	if err != nil {
+		t.Fatal(err)
+	}
+	user := User{
+		Name:  "Mika Hackinen",
+		Email: "mika@hackinen.io",
+	}
+	err = us.Create(&user)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = us.ByID(1)
+	if err != nil {
+		t.Errorf("Expected to find the user at position 1, but failed...")
+	}
+}
