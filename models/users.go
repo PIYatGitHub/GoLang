@@ -85,9 +85,19 @@ func (us *UserService) Close() error {
 }
 
 //DestructiveReset deletes the users table. NEVER EVER RUN IN PROD!!!!!
-func (us *UserService) DestructiveReset() {
-	us.db.DropTableIfExists(&User{})
-	us.db.AutoMigrate(&User{})
+func (us *UserService) DestructiveReset() error {
+	if err := us.db.DropTableIfExists(&User{}).Error; err != nil {
+		return err
+	}
+	return us.AutoMigrate()
+}
+
+//AutoMigrate is our version of the GORM function. We will use it further down the line
+func (us *UserService) AutoMigrate() error {
+	if err := us.db.AutoMigrate(&User{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // User will serve to save our users with the appropriate fields...
