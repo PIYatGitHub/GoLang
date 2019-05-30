@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	// added it not to get confused as of what is needed to run this...
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -50,7 +51,7 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 }
 
 // first is a function to get the first match from the DB.
-// DO MOT FORGET to give it a pointer on the dst object, otherwise
+// DO NOT FORGET to give it a pointer on the dst object, otherwise
 //you may run into major pizdec!
 func first(db *gorm.DB, dst interface{}) error {
 	err := db.First(dst).Error
@@ -62,6 +63,12 @@ func first(db *gorm.DB, dst interface{}) error {
 
 //Create does take care of creating a user or returns an error if there is sth wrong...
 func (us *UserService) Create(user *User) error {
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
 	return us.db.Create(user).Error
 }
 
@@ -103,6 +110,8 @@ func (us *UserService) AutoMigrate() error {
 // User will serve to save our users with the appropriate fields...
 type User struct {
 	gorm.Model
-	Name  string
-	Email string `gorm:"not null; unique_index"`
+	Name         string
+	Email        string `gorm:"not null; unique_index"`
+	Password     string `gorm:"-"`
+	PasswordHash string `gorm:"not null"`
 }
