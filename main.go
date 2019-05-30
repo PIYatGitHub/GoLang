@@ -22,11 +22,10 @@ func main() {
 		host, port, user, dbname)
 
 	us, err := models.NewUserService(psqlInfo)
-	if err != nil {
-		panic(err)
-	}
+	must(err)
 	defer us.Close()
-	// us.DestructiveReset()
+	// us.DestructiveReset() -- but it works bad with fresh, so we use AutoMigrate
+	us.AutoMigrate()
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUser(us)
 
@@ -36,4 +35,10 @@ func main() {
 	r.HandleFunc("/signup", usersC.New).Methods("GET")
 	r.HandleFunc("/signup", usersC.Create).Methods("POST")
 	http.ListenAndServe(":8080", r)
+}
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
 }
