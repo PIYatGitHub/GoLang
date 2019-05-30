@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"../models"
 	"../views"
 )
 
@@ -15,15 +16,17 @@ type SignupForm struct {
 
 // NewUser creates a new user view - capt. obvious strikes again!!!
 // This function shall panic if there is some err.
-func NewUser() *Users {
+func NewUser(us *models.UserService) *Users {
 	return &Users{
 		NewView: views.NewView("bootstrap", "users/new"),
+		us:      us,
 	}
 }
 
 //Users is a users struct!!!
 type Users struct {
 	NewView *views.View
+	us      *models.UserService
 }
 
 // New  --> Use to render the form to create a new user!
@@ -39,6 +42,14 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 	var form SignupForm
 	if err := parseForm(r, &form); err != nil {
 		panic(err)
+	}
+	user := models.User{
+		Name:  "",
+		Email: form.Email,
+	}
+	if err := u.us.Create(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	fmt.Fprintln(w, form)
 }
