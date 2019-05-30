@@ -16,6 +16,8 @@ var (
 	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
 )
 
+const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
+
 // NewUserService will open a singular connection to the DB!
 func NewUserService(connectionInfo string) (*UserService, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
@@ -63,7 +65,8 @@ func first(db *gorm.DB, dst interface{}) error {
 
 //Create does take care of creating a user or returns an error if there is sth wrong...
 func (us *UserService) Create(user *User) error {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	pwBytes := []byte(user.Password + userPwP)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
