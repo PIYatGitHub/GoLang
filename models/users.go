@@ -14,6 +14,8 @@ var (
 	ErrNotFound = errors.New("models: resource not found")
 	// ErrInvalidID is returned if you attempt to pass in an Id <= 0
 	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
+	// ErrInvalidPass is returned if you passed in a wrong password
+	ErrInvalidPass = errors.New("models: the password provided is invalid!")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
@@ -50,6 +52,25 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	db := us.db.Where("email = ?", email)
 	err := first(db, &user)
 	return &user, err
+}
+
+//Authenticate will lookup the provided email and pass and will return
+//a user obj for logged user and err if there isnt a user
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password))
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPass
+		default:
+			return nil, err
+		}
+	}
+	return foundUser, err
 }
 
 // first is a function to get the first match from the DB.
