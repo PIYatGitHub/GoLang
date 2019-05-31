@@ -51,6 +51,16 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, user)
 }
 
+//CookieTest will go eventually, but for now it reads the cookie
+func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("email")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusGone)
+		return
+	}
+	fmt.Fprintln(w, "Email is:", cookie.Value)
+}
+
 // Create is called whenever you submit the form ... se we create
 // a new user account here...
 // POST /signup
