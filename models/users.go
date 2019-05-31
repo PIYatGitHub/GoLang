@@ -61,7 +61,7 @@ func (us *UserService) Authenticate(email, password string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password+userPwP))
 	if err != nil {
 		switch err {
 		case bcrypt.ErrMismatchedHashAndPassword:

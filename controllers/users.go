@@ -27,7 +27,7 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 // Login is called whenever you want to log the user in
 // POST /login
 func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
-	form := LoginForm{}
+	var form LoginForm
 	if err := parseForm(r, &form); err != nil {
 		panic(err)
 	}
