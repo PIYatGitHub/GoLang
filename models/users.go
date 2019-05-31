@@ -15,7 +15,7 @@ var (
 	// ErrInvalidID is returned if you attempt to pass in an Id <= 0
 	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
 	// ErrInvalidPass is returned if you passed in a wrong password
-	ErrInvalidPass = errors.New("models: the password provided is invalid!")
+	ErrInvalidPass = errors.New("models: the password provided is invalid")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
