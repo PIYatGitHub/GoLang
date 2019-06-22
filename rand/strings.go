@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 )
 
+// RememberTokenBytes is the value used to get the token...
 const RememberTokenBytes = 32
 
 //Bytes will take in an integer n - the bytes count and will
