@@ -4,6 +4,9 @@ import (
 	"errors"
 
 	"github.com/jinzhu/gorm"
+
+	"../hash"
+	"../rand"
 	// added it not to get confused as of what is needed to run this...
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"golang.org/x/crypto/bcrypt"
@@ -19,6 +22,7 @@ var (
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
+const hmacSecretKey = "4wjht8wywr!^Y@$Yggwj8qeyrh139hSFYHEYFehjeo235"
 
 // NewUserService will open a singular connection to the DB!
 func NewUserService(connectionInfo string) (*UserService, error) {
@@ -26,14 +30,17 @@ func NewUserService(connectionInfo string) (*UserService, error) {
 	if err != nil {
 		return nil, err
 	}
+	hmac := hash.NewHMAC(hmacSecretKey)
 	return &UserService{
-		db: db,
+		db:   db,
+		hmac: hmac,
 	}, nil
 }
 
 // UserService holds the logic?
 type UserService struct {
-	db *gorm.DB
+	db   *gorm.DB
+	hmac hash.HMAC
 }
 
 //ByID will lookup the user by id;
@@ -52,6 +59,20 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	db := us.db.Where("email = ?", email)
 	err := first(db, &user)
 	return &user, err
+}
+
+//ByRemember will lookup the user by his/her remember token;
+// it will return user,nil or nil for the user and specific user (only one)
+//the method will handle the hashing for us as well
+func (us *UserService) ByRemember(token string) (*User, error) {
+	var user User
+	rememberHash := us.hmac.Hash(token)
+	err := first(us.db.Where("remember_hash = ?", rememberHash), &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 //Authenticate will lookup the provided email and pass and will return
@@ -93,11 +114,23 @@ func (us *UserService) Create(user *User) error {
 	}
 	user.PasswordHash = string(hashedBytes)
 	user.Password = ""
+	if user.Remember == "" {
+		toekn, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = toekn
+	}
+	user.RememberHash = us.hmac.Hash(user.Remember)
+
 	return us.db.Create(user).Error
 }
 
 //Update does take care of updating a user or returns an error if there is sth wrong...
 func (us *UserService) Update(user *User) error {
+	if user.Remember != "" {
+		user.RememberHash = us.hmac.Hash(user.Remember)
+	}
 	return us.db.Save(user).Error
 }
 
@@ -138,4 +171,6 @@ type User struct {
 	Email        string `gorm:"not null; unique_index"`
 	Password     string `gorm:"-"`
 	PasswordHash string `gorm:"not null"`
+	Remember     string `gorm:"-"`
+	RememberHash string `gorm:"not null; unique_index"`
 }
