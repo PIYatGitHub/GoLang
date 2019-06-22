@@ -6,7 +6,7 @@ import (
 )
 
 // RememberTokenBytes is the value used to get the token...
-const RememberTokenBytes = 32
+const RememberTokenBytes = 128
 
 //Bytes will take in an integer n - the bytes count and will
 //return the bytes or an err if it was one.
