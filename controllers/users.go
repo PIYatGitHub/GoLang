@@ -54,7 +54,6 @@ func signIn(w http.ResponseWriter, user *models.User) {
 		Value: user.Email,
 	}
 	http.SetCookie(w, &cookie)
-
 }
 
 //CookieTest will go eventually, but for now it reads the cookie
