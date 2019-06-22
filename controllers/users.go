@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"../models"
+	"../rand"
 	"../views"
 )
 
@@ -43,27 +44,48 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	signIn(w, user)
+	err = u.signIn(w, user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, r, "/cookietest", http.StatusFound)
 	fmt.Fprintln(w, user)
 }
 
-func signIn(w http.ResponseWriter, user *models.User) {
+func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
+	if user.Remember == "" {
+		token, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = token
+		err = u.us.Update(user)
+		if err != nil {
+			return err
+		}
+	}
 	cookie := http.Cookie{
-		Name:  "email",
-		Value: user.Email,
+		Name:  "remember_token",
+		Value: user.Remember,
 	}
 	http.SetCookie(w, &cookie)
+	return nil
 }
 
 //CookieTest will go eventually, but for now it reads the cookie
 func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("email")
+	cookie, err := r.Cookie("remember_token")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusGone)
 		return
 	}
-	fmt.Fprintln(w, "Email is:", cookie.Value)
+	user, err := u.us.ByRemember(cookie.Value)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusGone)
+		return
+	}
+	fmt.Fprintln(w, user)
 }
 
 // Create is called whenever you submit the form ... se we create
@@ -83,7 +105,11 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	signIn(w, &user)
+	err := u.signIn(w, &user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(w, r, "/cookietest", http.StatusFound)
 	fmt.Fprintln(w, user)
 }
