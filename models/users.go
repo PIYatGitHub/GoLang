@@ -73,10 +73,13 @@ func NewUserService(connectionInfo string) (UserService, error) {
 	if err != nil {
 		return nil, err
 	}
+	hmac := hash.NewHMAC(hmacSecretKey)
+	uv := &userValidator{
+		hmac:   hmac,
+		UserDB: ug,
+	}
 	return &userService{
-		UserDB: &userValidator{
-			UserDB: ug,
-		},
+		UserDB: uv,
 	}, nil
 }
 
@@ -107,19 +110,55 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 
 type userValidator struct {
 	UserDB
+	hmac hash.HMAC
 }
 
-//ByID -- userValidator version will validate the user's id BEFORE we delete;
-func (uv *userValidator) ByID(id uint) (*User, error) {
-	if id <= 0 {
-		return nil, errors.New("Invalid id")
+//ByRemember will hash the token and will call the next layer
+func (uv *userValidator) ByRemember(token string) (*User, error) {
+	rememberHash := uv.hmac.Hash(token)
+	return uv.UserDB.ByRemember(rememberHash)
+}
+
+//Create here is the breakout of validation from the gorm layer
+//this is why you see it calling the actual method after getting its job done
+func (uv *userValidator) Create(user *User) error {
+	pwBytes := []byte(user.Password + userPwP)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
 	}
-	return uv.UserDB.ByID(id)
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
+	if user.Remember == "" {
+		toekn, err := rand.RememberToken()
+		if err != nil {
+			return err
+		}
+		user.Remember = toekn
+	}
+	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return uv.UserDB.Create(user)
+}
+
+//Update here is the breakout of validation from the gorm layer
+//this is why you see it calling the actual method after getting its job done
+func (uv *userValidator) Update(user *User) error {
+	if user.Remember != "" {
+		user.RememberHash = uv.hmac.Hash(user.Remember)
+	}
+	return uv.UserDB.Update(user)
+}
+
+//delete -- again will take care of validation;
+func (uv *userValidator) Delete(id uint) error {
+	if id <= 0 {
+		return ErrInvalidID
+	}
+	return uv.UserDB.Delete(id)
 }
 
 type userGorm struct {
-	db   *gorm.DB
-	hmac hash.HMAC
+	db *gorm.DB
 }
 
 var _ UserDB = &userGorm{}
@@ -129,10 +168,8 @@ func newUserGorm(connectionInfo string) (*userGorm, error) {
 	if err != nil {
 		return nil, err
 	}
-	hmac := hash.NewHMAC(hmacSecretKey)
 	return &userGorm{
-		db:   db,
-		hmac: hmac,
+		db: db,
 	}, nil
 }
 
@@ -157,9 +194,8 @@ func (ug *userGorm) ByEmail(email string) (*User, error) {
 //ByRemember will lookup the user by his/her remember token;
 // it will return user,nil or nil for the user and specific user (only one)
 //the method will handle the hashing for us as well
-func (ug *userGorm) ByRemember(token string) (*User, error) {
+func (ug *userGorm) ByRemember(rememberHash string) (*User, error) {
 	var user User
-	rememberHash := ug.hmac.Hash(token)
 	err := first(ug.db.Where("remember_hash = ?", rememberHash), &user)
 	if err != nil {
 		return nil, err
@@ -181,38 +217,16 @@ func first(db *gorm.DB, dst interface{}) error {
 
 //Create does take care of creating a user or returns an error if there is sth wrong...
 func (ug *userGorm) Create(user *User) error {
-	pwBytes := []byte(user.Password + userPwP)
-	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	user.PasswordHash = string(hashedBytes)
-	user.Password = ""
-	if user.Remember == "" {
-		toekn, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = toekn
-	}
-	user.RememberHash = ug.hmac.Hash(user.Remember)
-
 	return ug.db.Create(user).Error
 }
 
 //Update does take care of updating a user or returns an error if there is sth wrong...
 func (ug *userGorm) Update(user *User) error {
-	if user.Remember != "" {
-		user.RememberHash = ug.hmac.Hash(user.Remember)
-	}
 	return ug.db.Save(user).Error
 }
 
 //Delete is a dangerous function as it deletes the user by ID. Do not use it if you are not sure...
 func (ug *userGorm) Delete(id uint) error {
-	if id == 0 {
-		return ErrInvalidID
-	}
 	user := User{Model: gorm.Model{ID: id}}
 	return ug.db.Delete(&user).Error
 }
