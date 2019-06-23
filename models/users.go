@@ -108,9 +108,36 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	return foundUser, err
 }
 
+type userValFunc func(*User) error
+
+func runUserValFuncs(user *User, fns ...userValFunc) error {
+	for _, fn := range fns {
+		if err := fn(user); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type userValidator struct {
 	UserDB
 	hmac hash.HMAC
+}
+
+// it will hash a password with the predefined pepper if the pword is not
+//an empty string
+func (uv *userValidator) bcryptPassword(user *User) error {
+	if user.Password == "" {
+		return nil
+	}
+	pwBytes := []byte(user.Password + userPwP)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
+	return nil
 }
 
 //ByRemember will hash the token and will call the next layer
@@ -122,13 +149,9 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 //Create here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Create(user *User) error {
-	pwBytes := []byte(user.Password + userPwP)
-	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
-	if err != nil {
+	if err := runUserValFuncs(user, uv.bcryptPassword); err != nil {
 		return err
 	}
-	user.PasswordHash = string(hashedBytes)
-	user.Password = ""
 	if user.Remember == "" {
 		toekn, err := rand.RememberToken()
 		if err != nil {
@@ -143,6 +166,9 @@ func (uv *userValidator) Create(user *User) error {
 //Update here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Update(user *User) error {
+	if err := runUserValFuncs(user, uv.bcryptPassword); err != nil {
+		return err
+	}
 	if user.Remember != "" {
 		user.RememberHash = uv.hmac.Hash(user.Remember)
 	}
