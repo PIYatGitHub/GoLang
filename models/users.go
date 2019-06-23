@@ -70,18 +70,26 @@ func newUserGorm(connectionInfo string) (*userGorm, error) {
 	}, nil
 }
 
-// UserService holds the logic?
-type UserService struct {
+type userService struct {
+	UserDB
+}
+
+// UserService is a set of methods, serving the user CRUD.
+type UserService interface {
+	// Authenticate will verify the email and pass.
+	//On success it will return the user, otherwise you will see an ErrRecordNotFound,
+	//ErrInvalidPass or another error in general.
+	Authenticate(email, password string) (*User, error)
 	UserDB
 }
 
 // NewUserService will take in the newly created gorm conn and will pass it onwards...
-func NewUserService(connectionInfo string) (*UserService, error) {
+func NewUserService(connectionInfo string) (UserService, error) {
 	ug, err := newUserGorm(connectionInfo)
 	if err != nil {
 		return nil, err
 	}
-	return &UserService{
+	return &userService{
 		UserDB: &userValidator{
 			UserDB: ug,
 		},
@@ -130,7 +138,7 @@ func (ug *userGorm) ByRemember(token string) (*User, error) {
 
 //Authenticate will lookup the provided email and pass and will return
 //a user obj for logged user and err if there isnt a user
-func (us *UserService) Authenticate(email, password string) (*User, error) {
+func (us *userService) Authenticate(email, password string) (*User, error) {
 	foundUser, err := us.ByEmail(email)
 	if err != nil {
 		return nil, err
