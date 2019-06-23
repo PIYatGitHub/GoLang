@@ -142,16 +142,19 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 
 //ByRemember will hash the token and will call the next layer
 func (uv *userValidator) ByRemember(token string) (*User, error) {
-	rememberHash := uv.hmac.Hash(token)
-	return uv.UserDB.ByRemember(rememberHash)
+	user := User{
+		Remember: token,
+	}
+	if err := runUserValFuncs(&user,
+		uv.hmacRemember); err != nil {
+		return nil, err
+	}
+	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
 //Create here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Create(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword); err != nil {
-		return err
-	}
 	if user.Remember == "" {
 		toekn, err := rand.RememberToken()
 		if err != nil {
@@ -159,18 +162,19 @@ func (uv *userValidator) Create(user *User) error {
 		}
 		user.Remember = toekn
 	}
-	user.RememberHash = uv.hmac.Hash(user.Remember)
+
+	if err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember); err != nil {
+		return err
+	}
+
 	return uv.UserDB.Create(user)
 }
 
 //Update here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Update(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword); err != nil {
+	if err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember); err != nil {
 		return err
-	}
-	if user.Remember != "" {
-		user.RememberHash = uv.hmac.Hash(user.Remember)
 	}
 	return uv.UserDB.Update(user)
 }
@@ -181,6 +185,14 @@ func (uv *userValidator) Delete(id uint) error {
 		return ErrInvalidID
 	}
 	return uv.UserDB.Delete(id)
+}
+
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
+		return nil
+	}
+	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return nil
 }
 
 type userGorm struct {
