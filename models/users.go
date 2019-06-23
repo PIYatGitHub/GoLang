@@ -88,13 +88,21 @@ func NewUserService(connectionInfo string) (*UserService, error) {
 	}, nil
 }
 
-//ByID will lookup the user by id;
+//ByID -- userGorm version will lookup the user by id;
 // it will return user,nil or nil for the user and specific user (only one)
 func (ug *userGorm) ByID(id uint) (*User, error) {
 	var user User
 	db := ug.db.Where("id = ?", id)
 	err := first(db, &user)
 	return &user, err
+}
+
+//ByID -- userValidator version will validate the user's id BEFORE we delete;
+func (uv *userValidator) ByID(id uint) (*User, error) {
+	if id <= 0 {
+		return nil, errors.New("Invalid id")
+	}
+	return uv.UserDB.ByID(id)
 }
 
 //ByEmail will lookup the user by his/her email address;
