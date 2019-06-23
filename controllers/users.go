@@ -11,7 +11,7 @@ import (
 
 // NewUser creates a new user view - capt. obvious strikes again!!!
 // This function shall panic if there is some err.
-func NewUser(us *models.UserService) *Users {
+func NewUser(us models.UserService) *Users {
 	return &Users{
 		NewView:   views.NewView("bootstrap", "users/new"),
 		LoginView: views.NewView("bootstrap", "users/login"),
@@ -119,7 +119,7 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 type Users struct {
 	NewView   *views.View
 	LoginView *views.View
-	us        *models.UserService
+	us        models.UserService
 }
 
 // LoginForm is a struct to hold our login data, e.g. email and password
