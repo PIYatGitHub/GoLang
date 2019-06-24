@@ -174,6 +174,15 @@ func (uv *userValidator) defalutRemember(user *User) error {
 	return nil
 }
 
+func (uv *userValidator) idGreaterThan(n uint) userValFunc {
+	return userValFunc(func(user *User) error {
+		if user.ID <= n {
+			return ErrInvalidID
+		}
+		return nil
+	})
+}
+
 //Create here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Create(user *User) error {
@@ -195,8 +204,13 @@ func (uv *userValidator) Update(user *User) error {
 
 //delete -- again will take care of validation;
 func (uv *userValidator) Delete(id uint) error {
-	if id <= 0 {
-		return ErrInvalidID
+	user := User{
+		Model: gorm.Model{
+			ID: id,
+		},
+	}
+	if err := runUserValFuncs(&user, uv.idGreaterThan(0)); err != nil {
+		return err
 	}
 	return uv.UserDB.Delete(id)
 }
