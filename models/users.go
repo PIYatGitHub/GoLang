@@ -167,7 +167,8 @@ func (uv *userValidator) ByEmail(email string) (*User, error) {
 func (uv *userValidator) Create(user *User) error {
 	if err := runUserValFuncs(user, uv.bcryptPassword,
 		uv.defalutRemember, uv.hmacRemember,
-		uv.normalizeEmail, uv.requireEmail); err != nil {
+		uv.normalizeEmail, uv.requireEmail,
+		uv.emailFormat); err != nil {
 		return err
 	}
 	return uv.UserDB.Create(user)
@@ -178,7 +179,7 @@ func (uv *userValidator) Create(user *User) error {
 func (uv *userValidator) Update(user *User) error {
 	if err := runUserValFuncs(user, uv.bcryptPassword,
 		uv.hmacRemember, uv.normalizeEmail,
-		uv.requireEmail); err != nil {
+		uv.requireEmail, uv.emailFormat); err != nil {
 		return err
 	}
 	return uv.UserDB.Update(user)
