@@ -22,6 +22,10 @@ var (
 	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
 	// ErrInvalidPass is returned if you passed in a wrong password
 	ErrInvalidPass = errors.New("models: the password provided is invalid")
+	// ErrPasswordTooShort is returned if you passed in a password which is less than 8 characters long
+	ErrPasswordTooShort = errors.New("models: the password must be at least 8 characters long")
+	//ErrPasswordRequired is thrown whenever create i s attempted w/o password
+	ErrPasswordRequired = errors.New("a password is required")
 	//ErrEmailRequired is returned when you pass in an empty email
 	ErrEmailRequired = errors.New("Email is required")
 	//ErrInvalidEmail is returned when your email fails to match the regex
@@ -164,7 +168,9 @@ func (uv *userValidator) ByEmail(email string) (*User, error) {
 //Create here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Create(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword,
+	if err := runUserValFuncs(user,
+		uv.passwordRequired, uv.passwordMinLength,
+		uv.bcryptPassword, uv.passwordHashRequired,
 		uv.defalutRemember, uv.hmacRemember,
 		uv.normalizeEmail, uv.requireEmail,
 		uv.emailFormat, uv.emailAvailable); err != nil {
@@ -176,10 +182,11 @@ func (uv *userValidator) Create(user *User) error {
 //Update here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Update(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword,
-		uv.hmacRemember, uv.normalizeEmail,
-		uv.requireEmail, uv.emailFormat,
-		uv.emailAvailable); err != nil {
+	if err := runUserValFuncs(user,
+		uv.passwordMinLength, uv.bcryptPassword,
+		uv.passwordHashRequired, uv.hmacRemember,
+		uv.normalizeEmail, uv.requireEmail,
+		uv.emailFormat, uv.emailAvailable); err != nil {
 		return err
 	}
 	return uv.UserDB.Update(user)
@@ -211,6 +218,33 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	}
 	user.PasswordHash = string(hashedBytes)
 	user.Password = ""
+	return nil
+}
+
+// this will validate the pass length
+func (uv *userValidator) passwordMinLength(user *User) error {
+	if user.Password == "" {
+		return nil
+	}
+	if len(user.Password) < 8 {
+		return ErrPasswordTooShort
+	}
+	return nil
+}
+
+// this will validate the pass length
+func (uv *userValidator) passwordRequired(user *User) error {
+	if user.Password == "" {
+		return ErrPasswordRequired
+	}
+	return nil
+}
+
+// this will validate the pass hash is there
+func (uv *userValidator) passwordHashRequired(user *User) error {
+	if user.PasswordHash == "" {
+		return ErrPasswordRequired
+	}
 	return nil
 }
 
