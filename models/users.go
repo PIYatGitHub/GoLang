@@ -152,21 +152,35 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
+//hmacRemember will go through the hmac of the remember token
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
+		return nil
+	}
+	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return nil
+}
+
+//defalutRemember will add a default remember token on create if none is found...
+func (uv *userValidator) defalutRemember(user *User) error {
+	if user.Remember != "" {
+		return nil
+	}
+	toekn, err := rand.RememberToken()
+	if err != nil {
+		return err
+	}
+	user.Remember = toekn
+	return nil
+}
+
 //Create here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Create(user *User) error {
-	if user.Remember == "" {
-		toekn, err := rand.RememberToken()
-		if err != nil {
-			return err
-		}
-		user.Remember = toekn
-	}
-
-	if err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember); err != nil {
+	if err := runUserValFuncs(user, uv.bcryptPassword,
+		uv.defalutRemember, uv.hmacRemember); err != nil {
 		return err
 	}
-
 	return uv.UserDB.Create(user)
 }
 
@@ -185,14 +199,6 @@ func (uv *userValidator) Delete(id uint) error {
 		return ErrInvalidID
 	}
 	return uv.UserDB.Delete(id)
-}
-
-func (uv *userValidator) hmacRemember(user *User) error {
-	if user.Remember == "" {
-		return nil
-	}
-	user.RememberHash = uv.hmac.Hash(user.Remember)
-	return nil
 }
 
 type userGorm struct {
