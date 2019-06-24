@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -20,6 +21,10 @@ var (
 	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
 	// ErrInvalidPass is returned if you passed in a wrong password
 	ErrInvalidPass = errors.New("models: the password provided is invalid")
+	//ErrEmailRequired is returned when you pass in an empty email
+	ErrEmailRequired = errors.New("Email is required")
+	//ErrInvalidEmail is returned when your email fails to match the regex
+	ErrInvalidEmail = errors.New("Invalid email address")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
@@ -120,9 +125,19 @@ func runUserValFuncs(user *User, fns ...userValFunc) error {
 	return nil
 }
 
+func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
+	return &userValidator{
+		UserDB: udb,
+		hmac:   hmac,
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@` +
+			`[a-z0-9.\-]+\.[a-z]{2-16}$`),
+	}
+}
+
 type userValidator struct {
 	UserDB
-	hmac hash.HMAC
+	hmac       hash.HMAC
+	emailRegex *regexp.Regexp
 }
 
 //ByRemember will hash the token and will call the next layer
@@ -240,7 +255,15 @@ func (uv *userValidator) normalizeEmail(user *User) error {
 //requireEmail will guarantee that the email is not empty
 func (uv *userValidator) requireEmail(user *User) error {
 	if user.Email == "" {
-		return errors.New("Email is required")
+		return ErrEmailRequired
+	}
+	return nil
+}
+
+//emailFormat will inspect the email format using the glob. variable emailRegex
+func (uv *userValidator) emailFormat(user *User) error {
+	if !uv.emailRegex.MatchString(user.Email) {
+		return ErrInvalidEmail
 	}
 	return nil
 }
