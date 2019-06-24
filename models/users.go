@@ -25,6 +25,8 @@ var (
 	ErrEmailRequired = errors.New("Email is required")
 	//ErrInvalidEmail is returned when your email fails to match the regex
 	ErrInvalidEmail = errors.New("Invalid email address")
+	//ErrEmailAlreadyTaken is returned whenever the email already exists in the DB
+	ErrEmailAlreadyTaken = errors.New("This email is already taken")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
@@ -168,7 +170,7 @@ func (uv *userValidator) Create(user *User) error {
 	if err := runUserValFuncs(user, uv.bcryptPassword,
 		uv.defalutRemember, uv.hmacRemember,
 		uv.normalizeEmail, uv.requireEmail,
-		uv.emailFormat); err != nil {
+		uv.emailFormat, uv.emailAvailable); err != nil {
 		return err
 	}
 	return uv.UserDB.Create(user)
@@ -179,7 +181,8 @@ func (uv *userValidator) Create(user *User) error {
 func (uv *userValidator) Update(user *User) error {
 	if err := runUserValFuncs(user, uv.bcryptPassword,
 		uv.hmacRemember, uv.normalizeEmail,
-		uv.requireEmail, uv.emailFormat); err != nil {
+		uv.requireEmail, uv.emailFormat,
+		uv.emailAvailable); err != nil {
 		return err
 	}
 	return uv.UserDB.Update(user)
@@ -265,6 +268,24 @@ func (uv *userValidator) requireEmail(user *User) error {
 func (uv *userValidator) emailFormat(user *User) error {
 	if !uv.emailRegex.MatchString(user.Email) {
 		return ErrInvalidEmail
+	}
+	return nil
+}
+
+//emailAvailable will check if the email is available
+//both for signup and for changing the email
+func (uv *userValidator) emailAvailable(user *User) error {
+	existing, err := uv.ByEmail(user.Email)
+	if err == ErrNotFound {
+		return nil //because email is not taken!
+	}
+	if err != nil {
+		return err
+	}
+	//we found the user with this email address
+	//if found user has the same id with the user ==> we are updating
+	if user.ID != existing.ID {
+		return ErrEmailAlreadyTaken
 	}
 	return nil
 }
