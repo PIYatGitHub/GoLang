@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 
@@ -124,63 +125,26 @@ type userValidator struct {
 	hmac hash.HMAC
 }
 
-// it will hash a password with the predefined pepper if the pword is not
-//an empty string
-func (uv *userValidator) bcryptPassword(user *User) error {
-	if user.Password == "" {
-		return nil
-	}
-	pwBytes := []byte(user.Password + userPwP)
-	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	user.PasswordHash = string(hashedBytes)
-	user.Password = ""
-	return nil
-}
-
 //ByRemember will hash the token and will call the next layer
 func (uv *userValidator) ByRemember(token string) (*User, error) {
 	user := User{
 		Remember: token,
 	}
-	if err := runUserValFuncs(&user,
-		uv.hmacRemember); err != nil {
+	if err := runUserValFuncs(&user, uv.hmacRemember); err != nil {
 		return nil, err
 	}
 	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
-//hmacRemember will go through the hmac of the remember token
-func (uv *userValidator) hmacRemember(user *User) error {
-	if user.Remember == "" {
-		return nil
+//ByEmail will hash the token and will call the next layer
+func (uv *userValidator) ByEmail(email string) (*User, error) {
+	user := User{
+		Email: email,
 	}
-	user.RememberHash = uv.hmac.Hash(user.Remember)
-	return nil
-}
-
-//defalutRemember will add a default remember token on create if none is found...
-func (uv *userValidator) defalutRemember(user *User) error {
-	if user.Remember != "" {
-		return nil
+	if err := runUserValFuncs(&user, uv.normalizeEmail); err != nil {
+		return nil, err
 	}
-	toekn, err := rand.RememberToken()
-	if err != nil {
-		return err
-	}
-	user.Remember = toekn
-	return nil
-}
-
-func (uv *userValidator) idGreaterThan(n uint) userValFunc {
-	return userValFunc(func(user *User) error {
-		if user.ID <= n {
-			return ErrInvalidID
-		}
-		return nil
-	})
+	return uv.UserDB.ByEmail(user.Email)
 }
 
 //Create here is the breakout of validation from the gorm layer
@@ -213,6 +177,61 @@ func (uv *userValidator) Delete(id uint) error {
 		return err
 	}
 	return uv.UserDB.Delete(id)
+}
+
+// it will hash a password with the predefined pepper if the pword is not
+//an empty string
+func (uv *userValidator) bcryptPassword(user *User) error {
+	if user.Password == "" {
+		return nil
+	}
+	pwBytes := []byte(user.Password + userPwP)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	user.PasswordHash = string(hashedBytes)
+	user.Password = ""
+	return nil
+}
+
+//hmacRemember will go through the hmac of the remember token
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
+		return nil
+	}
+	user.RememberHash = uv.hmac.Hash(user.Remember)
+	return nil
+}
+
+//defalutRemember will add a default remember token on create if none is found...
+func (uv *userValidator) defalutRemember(user *User) error {
+	if user.Remember != "" {
+		return nil
+	}
+	toekn, err := rand.RememberToken()
+	if err != nil {
+		return err
+	}
+	user.Remember = toekn
+	return nil
+}
+
+// idGreaterThan is a cool little closure func which cheks your ID and returns an err if it less than 0
+func (uv *userValidator) idGreaterThan(n uint) userValFunc {
+	return userValFunc(func(user *User) error {
+		if user.ID <= n {
+			return ErrInvalidID
+		}
+		return nil
+	})
+}
+
+//normalizeEmail will turn the email to lowerr case and trim out all the extra spaces.
+func (uv *userValidator) normalizeEmail(user *User) error {
+	user.Email = strings.ToLower(user.Email)
+	user.Email = strings.TrimSpace(user.Email)
+	return nil
 }
 
 type userGorm struct {
