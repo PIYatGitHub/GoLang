@@ -136,7 +136,7 @@ func (uv *userValidator) ByRemember(token string) (*User, error) {
 	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
-//ByEmail will hash the token and will call the next layer
+//ByEmail will normalize the email before calling the real method to search by email
 func (uv *userValidator) ByEmail(email string) (*User, error) {
 	user := User{
 		Email: email,
@@ -151,7 +151,8 @@ func (uv *userValidator) ByEmail(email string) (*User, error) {
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Create(user *User) error {
 	if err := runUserValFuncs(user, uv.bcryptPassword,
-		uv.defalutRemember, uv.hmacRemember); err != nil {
+		uv.defalutRemember, uv.hmacRemember,
+		uv.normalizeEmail, uv.requireEmail); err != nil {
 		return err
 	}
 	return uv.UserDB.Create(user)
@@ -160,7 +161,9 @@ func (uv *userValidator) Create(user *User) error {
 //Update here is the breakout of validation from the gorm layer
 //this is why you see it calling the actual method after getting its job done
 func (uv *userValidator) Update(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember); err != nil {
+	if err := runUserValFuncs(user, uv.bcryptPassword,
+		uv.hmacRemember, uv.normalizeEmail,
+		uv.requireEmail); err != nil {
 		return err
 	}
 	return uv.UserDB.Update(user)
@@ -231,6 +234,14 @@ func (uv *userValidator) idGreaterThan(n uint) userValFunc {
 func (uv *userValidator) normalizeEmail(user *User) error {
 	user.Email = strings.ToLower(user.Email)
 	user.Email = strings.TrimSpace(user.Email)
+	return nil
+}
+
+//requireEmail will guarantee that the email is not empty
+func (uv *userValidator) requireEmail(user *User) error {
+	if user.Email == "" {
+		return errors.New("Email is required")
+	}
 	return nil
 }
 
