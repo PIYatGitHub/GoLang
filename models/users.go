@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -82,10 +83,7 @@ func NewUserService(connectionInfo string) (UserService, error) {
 		return nil, err
 	}
 	hmac := hash.NewHMAC(hmacSecretKey)
-	uv := &userValidator{
-		hmac:   hmac,
-		UserDB: ug,
-	}
+	uv := newUserValidator(ug, hmac)
 	return &userService{
 		UserDB: uv,
 	}, nil
@@ -129,10 +127,9 @@ func runUserValFuncs(user *User, fns ...userValFunc) error {
 
 func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
 	return &userValidator{
-		UserDB: udb,
-		hmac:   hmac,
-		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@` +
-			`[a-z0-9.\-]+\.[a-z]{2-16}$`),
+		UserDB:     udb,
+		hmac:       hmac,
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`),
 	}
 }
 
@@ -266,7 +263,9 @@ func (uv *userValidator) requireEmail(user *User) error {
 
 //emailFormat will inspect the email format using the glob. variable emailRegex
 func (uv *userValidator) emailFormat(user *User) error {
+
 	if !uv.emailRegex.MatchString(user.Email) {
+		fmt.Println("are we in gere", user.Email, uv.emailRegex)
 		return ErrInvalidEmail
 	}
 	return nil
