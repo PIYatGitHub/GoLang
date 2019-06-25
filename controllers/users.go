@@ -31,24 +31,30 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 // POST /login
 func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	var form LoginForm
+	vd := views.Data{}
 	if err := parseForm(r, &form); err != nil {
-		panic(err)
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
+		return
 	}
 	user, err := u.us.Authenticate(form.Email, form.Password)
 	if err != nil {
 		switch err {
 		case models.ErrNotFound:
-			fmt.Fprintln(w, "Invalid email address...")
-		case models.ErrInvalidPass:
-			fmt.Fprintln(w, "Invalid passowrd...")
+			vd.Alert = &views.Alert{
+				Level:   views.AlertLvlError,
+				Message: "Invalid Email Address",
+			}
 		default:
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			vd.SetAlert(err)
 		}
+		u.LoginView.Render(w, vd)
 		return
 	}
 	err = u.signIn(w, user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		vd.SetAlert(err)
+		u.LoginView.Render(w, vd)
 		return
 	}
 	http.Redirect(w, r, "/cookietest", http.StatusFound)
