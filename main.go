@@ -29,6 +29,7 @@ func main() {
 	services.AutoMigrate()
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUser(services.User)
+	galleriesC := controllers.NewGallery(services.Gallery)
 
 	r := mux.NewRouter()
 	r.Handle("/", staticC.Home).Methods("GET")
@@ -37,8 +38,10 @@ func main() {
 	r.HandleFunc("/signup", usersC.Create).Methods("POST")
 	r.Handle("/login", usersC.LoginView).Methods("GET")
 	r.HandleFunc("/login", usersC.Login).Methods("POST")
-
 	r.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
+
+	//Gallery routes
+	r.Handle("/galleries/new", galleriesC.New).Methods("GET")
 
 	http.ListenAndServe(":8080", r)
 }
