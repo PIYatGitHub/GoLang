@@ -9,6 +9,8 @@ const (
 	AlertLvlInfo = "info"
 	// AlertLvlSuccess turns the alert green
 	AlertLvlSuccess = "success"
+	//AlertMsgGeneric is just a generic error msg we show
+	AlertMsgGeneric = "Something went wrong. Please try again and do contact us if the problem persists."
 )
 
 //Alert is the data passed in to the Alert
