@@ -19,6 +19,15 @@ func Bytes(n int) ([]byte, error) {
 	return b, nil
 }
 
+//NBytes will count the number of Bytes or an error if it cannot decode for some reason
+func NBytes(base64String string) (int, error) {
+	b, err := base64.URLEncoding.DecodeString(base64String)
+	if err != nil {
+		return -1, err
+	}
+	return len(b), nil
+}
+
 //String will generate a string drom a byte slice (as a BASE6 encoded string!!!)
 func String(nBytes int) (string, error) {
 	b, err := Bytes(nBytes)
