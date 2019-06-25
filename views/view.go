@@ -1,7 +1,9 @@
 package views
 
 import (
+	"bytes"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 )
@@ -18,11 +20,9 @@ func NewView(layout string, files ...string) *View {
 	addTemplateExt(files)
 	files = append(files, layoutFiles()...)
 	t, err := template.ParseFiles(files...)
-
 	if err != nil {
 		panic(err)
 	}
-
 	return &View{
 		Template: t,
 		Layout:   layout,
@@ -46,13 +46,11 @@ func addTemplateExt(files []string) {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := v.Render(w, nil); err != nil {
-		panic(err)
-	}
+	v.Render(w, nil)
 }
 
 // Render is used to render the view or throw an error otherwise...
-func (v *View) Render(w http.ResponseWriter, data interface{}) error {
+func (v *View) Render(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-type", "text/html")
 	switch data.(type) {
 	case Data: //do nothing
@@ -60,9 +58,15 @@ func (v *View) Render(w http.ResponseWriter, data interface{}) error {
 		data = Data{
 			Yield: data,
 		}
-
 	}
-	return v.Template.ExecuteTemplate(w, v.Layout, data)
+	var buff bytes.Buffer
+
+	if err := v.Template.ExecuteTemplate(&buff, v.Layout, data); err != nil {
+		http.Error(w, "Something went wrong. Please email support@lenslocked.com if the issue persists",
+			http.StatusInternalServerError)
+		return
+	}
+	io.Copy(w, &buff)
 }
 
 // View is a struct to create the template - that is all it does...
