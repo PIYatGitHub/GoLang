@@ -34,6 +34,8 @@ var (
 	ErrEmailAlreadyTaken = errors.New("This email is already taken")
 	//ErrRememberTooShort is returned whenever the remember token is too short...
 	ErrRememberTooShort = errors.New("The remember token is too shhort")
+	//ErrRememberRequired is returned whenever the remember hash is not there!
+	ErrRememberRequired = errors.New("The remember hash is required")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
@@ -173,7 +175,8 @@ func (uv *userValidator) Create(user *User) error {
 	if err := runUserValFuncs(user,
 		uv.passwordRequired, uv.passwordMinLength,
 		uv.bcryptPassword, uv.passwordHashRequired,
-		uv.defalutRemember, uv.rememberMinBytes, uv.hmacRemember,
+		uv.defalutRemember, uv.rememberMinBytes,
+		uv.hmacRemember, uv.rememberHashRequired,
 		uv.normalizeEmail, uv.requireEmail,
 		uv.emailFormat, uv.emailAvailable); err != nil {
 		return err
@@ -186,7 +189,8 @@ func (uv *userValidator) Create(user *User) error {
 func (uv *userValidator) Update(user *User) error {
 	if err := runUserValFuncs(user,
 		uv.passwordMinLength, uv.bcryptPassword,
-		uv.passwordHashRequired, uv.rememberMinBytes, uv.hmacRemember,
+		uv.passwordHashRequired, uv.rememberMinBytes,
+		uv.hmacRemember, uv.rememberHashRequired,
 		uv.normalizeEmail, uv.requireEmail,
 		uv.emailFormat, uv.emailAvailable); err != nil {
 		return err
@@ -285,6 +289,14 @@ func (uv *userValidator) rememberMinBytes(user *User) error {
 	}
 	if n < 32 {
 		return ErrRememberTooShort
+	}
+	return nil
+}
+
+// this will validate the remember hash is there
+func (uv *userValidator) rememberHashRequired(user *User) error {
+	if user.RememberHash == "" {
+		return ErrRememberRequired
 	}
 	return nil
 }
