@@ -60,16 +60,13 @@ type UserService interface {
 }
 
 // NewUserService will take in the newly created gorm conn and will pass it onwards...
-func NewUserService(connectionInfo string) (UserService, error) {
-	ug, err := newUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
+func NewUserService(db *gorm.DB) UserService {
+	ug := &userGorm{db}
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 	return &userService{
 		UserDB: uv,
-	}, nil
+	}
 }
 
 var _ UserService = &userService{}
@@ -333,16 +330,6 @@ type userGorm struct {
 }
 
 var _ UserDB = &userGorm{}
-
-func newUserGorm(connectionInfo string) (*userGorm, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	return &userGorm{
-		db: db,
-	}, nil
-}
 
 //ByID -- userGorm version will lookup the user by id;
 // it will return user,nil or nil for the user and specific user (only one)

@@ -21,14 +21,14 @@ func main() {
 	psqlInfo := fmt.Sprintf("host=%s port =%d user=%s dbname=%s sslmode=disable",
 		host, port, user, dbname)
 
-	us, err := models.NewUserService(psqlInfo)
+	services, err := models.NewServices(psqlInfo)
 	must(err)
-	defer us.Close()
+	// defer us.Close()
 	// us.DestructiveReset()
 	// -- but it works bad with fresh, so we use AutoMigrate
-	us.AutoMigrate()
+	// us.AutoMigrate()
 	staticC := controllers.NewStatic()
-	usersC := controllers.NewUser(us)
+	usersC := controllers.NewUser(services.User)
 
 	r := mux.NewRouter()
 	r.Handle("/", staticC.Home).Methods("GET")
