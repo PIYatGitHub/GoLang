@@ -22,7 +22,17 @@ func NewUser(us models.UserService) *Users {
 // New  --> Use to render the form to create a new user!
 // GET /signup
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, nil)
+	type Alert struct {
+		Level   string
+		Message string
+	}
+	a := Alert{
+		Level:   "success",
+		Message: "Yay it just worked!!!",
+	}
+	if err := u.NewView.Render(w, a); err != nil {
+		panic(err)
+	}
 }
 
 // Login is called whenever you want to log the user in
