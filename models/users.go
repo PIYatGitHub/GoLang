@@ -1,8 +1,6 @@
 package models
 
 import (
-	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -13,29 +11,6 @@ import (
 	// added it not to get confused as of what is needed to run this...
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	//ErrNotFound is returned whenever you cannot find the resource at the DB
-	ErrNotFound = errors.New("models: resource not found")
-	// ErrInvalidID is returned if you attempt to pass in an Id <= 0
-	ErrInvalidID = errors.New("models: the ID is supposed to be greater than 0")
-	// ErrInvalidPass is returned if you passed in a wrong password
-	ErrInvalidPass = errors.New("models: the password provided is invalid")
-	// ErrPasswordTooShort is returned if you passed in a password which is less than 8 characters long
-	ErrPasswordTooShort = errors.New("models: the password must be at least 8 characters long")
-	//ErrPasswordRequired is thrown whenever create i s attempted w/o password
-	ErrPasswordRequired = errors.New("a password is required")
-	//ErrEmailRequired is returned when you pass in an empty email
-	ErrEmailRequired = errors.New("Email is required")
-	//ErrInvalidEmail is returned when your email fails to match the regex
-	ErrInvalidEmail = errors.New("Invalid email address")
-	//ErrEmailAlreadyTaken is returned whenever the email already exists in the DB
-	ErrEmailAlreadyTaken = errors.New("This email is already taken")
-	//ErrRememberTooShort is returned whenever the remember token is too short...
-	ErrRememberTooShort = errors.New("The remember token is too shhort")
-	//ErrRememberRequired is returned whenever the remember hash is not there!
-	ErrRememberRequired = errors.New("The remember hash is required")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
@@ -330,7 +305,6 @@ func (uv *userValidator) requireEmail(user *User) error {
 func (uv *userValidator) emailFormat(user *User) error {
 
 	if !uv.emailRegex.MatchString(user.Email) {
-		fmt.Println("are we in gere", user.Email, uv.emailRegex)
 		return ErrInvalidEmail
 	}
 	return nil

@@ -26,3 +26,25 @@ type Data struct {
 	Alert *Alert
 	Yield interface{}
 }
+
+//SetAlert will get in an error, check if it has a public property
+//and if it does it will display it, otherwise it will add a generic error message.
+func (d *Data) SetAlert(err error) {
+	if pErr, ok := err.(PublicError); ok {
+		d.Alert = &Alert{
+			Level:   AlertLvlError,
+			Message: pErr.Public(),
+		}
+	} else {
+		d.Alert = &Alert{
+			Level:   AlertLvlError,
+			Message: AlertMsgGeneric,
+		}
+	}
+}
+
+//PublicError is the interface used to get them public errors
+type PublicError interface {
+	error
+	Public() string
+}
