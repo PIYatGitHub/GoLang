@@ -23,10 +23,10 @@ func main() {
 
 	services, err := models.NewServices(psqlInfo)
 	must(err)
-	// defer us.Close()
-	// us.DestructiveReset()
+	defer services.Close()
+	// services.DestructiveReset()
 	// -- but it works bad with fresh, so we use AutoMigrate
-	// us.AutoMigrate()
+	services.AutoMigrate()
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUser(services.User)
 
