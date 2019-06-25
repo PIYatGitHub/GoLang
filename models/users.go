@@ -32,6 +32,8 @@ var (
 	ErrInvalidEmail = errors.New("Invalid email address")
 	//ErrEmailAlreadyTaken is returned whenever the email already exists in the DB
 	ErrEmailAlreadyTaken = errors.New("This email is already taken")
+	//ErrRememberTooShort is returned whenever the remember token is too short...
+	ErrRememberTooShort = errors.New("The remember token is too shhort")
 )
 
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
@@ -171,7 +173,7 @@ func (uv *userValidator) Create(user *User) error {
 	if err := runUserValFuncs(user,
 		uv.passwordRequired, uv.passwordMinLength,
 		uv.bcryptPassword, uv.passwordHashRequired,
-		uv.defalutRemember, uv.hmacRemember,
+		uv.defalutRemember, uv.rememberMinBytes, uv.hmacRemember,
 		uv.normalizeEmail, uv.requireEmail,
 		uv.emailFormat, uv.emailAvailable); err != nil {
 		return err
@@ -184,7 +186,7 @@ func (uv *userValidator) Create(user *User) error {
 func (uv *userValidator) Update(user *User) error {
 	if err := runUserValFuncs(user,
 		uv.passwordMinLength, uv.bcryptPassword,
-		uv.passwordHashRequired, uv.hmacRemember,
+		uv.passwordHashRequired, uv.rememberMinBytes, uv.hmacRemember,
 		uv.normalizeEmail, uv.requireEmail,
 		uv.emailFormat, uv.emailAvailable); err != nil {
 		return err
@@ -267,6 +269,23 @@ func (uv *userValidator) defalutRemember(user *User) error {
 		return err
 	}
 	user.Remember = toekn
+	return nil
+}
+
+//rememberMinBytes is the implementation of NBytes so that we have a min MinLength
+//of the remember tokens
+
+func (uv *userValidator) rememberMinBytes(user *User) error {
+	if user.Remember != "" {
+		return nil
+	}
+	n, err := rand.NBytes(user.Remember)
+	if err != nil {
+		return err
+	}
+	if n < 32 {
+		return ErrRememberTooShort
+	}
 	return nil
 }
 
