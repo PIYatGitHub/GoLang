@@ -22,20 +22,11 @@ func NewUser(us models.UserService) *Users {
 // New  --> Use to render the form to create a new user!
 // GET /signup
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	type Alert struct {
-		Level   string
-		Message string
-	}
-	type Data struct {
-		Alert Alert
-		Yield interface{}
-	}
-	a := Alert{
-		Level:   "success",
-		Message: "Yay it just worked!!!",
-	}
-	d := Data{
-		Alert: a,
+	d := views.Data{
+		Alert: &views.Alert{
+			Level:   views.AlertLvlError,
+			Message: "Sth went very wrong...",
+		},
 		Yield: "Hello!",
 	}
 	if err := u.NewView.Render(w, d); err != nil {
