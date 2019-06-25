@@ -19,6 +19,27 @@ type GalleryDB interface {
 	Create(gallery *Gallery) error
 }
 
+//NewGalleryService will init the gallery service and will make it available
+func NewGalleryService(db *gorm.DB) GalleryService {
+	return &galleryService{
+		GalleryDB: &galleryValidator{&galleryGorm{db}},
+	}
+}
+
+type galleryValidator struct {
+	GalleryDB
+}
+
+var _ GalleryDB = &galleryGorm{}
+
 type galleryGorm struct {
 	db *gorm.DB
+}
+
+type galleryService struct {
+	GalleryDB
+}
+
+func (gg *galleryGorm) Create(gallery *Gallery) error {
+	return gg.db.Create(gallery).Error
 }

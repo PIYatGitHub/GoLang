@@ -9,8 +9,9 @@ func NewServices(connectionInfo string) (*Services, error) {
 		return nil, err
 	}
 	return &Services{
-		User: NewUserService(db),
-		db:   db,
+		User:    NewUserService(db),
+		Gallery: NewGalleryService(db),
+		db:      db,
 	}, nil
 }
 
