@@ -13,11 +13,12 @@ import (
 
 // NewGallery creates a new gallery view - capt. obvious strikes again!!!
 // This function shall panic if there is some err.
-func NewGallery(gs models.GalleryService) *Galleries {
+func NewGallery(gs models.GalleryService, r *mux.Router) *Galleries {
 	return &Galleries{
 		New:      views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
 		gs:       gs,
+		r:        r,
 	}
 }
 
@@ -44,7 +45,6 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	}
 	vd.Yield = gallery
 	g.ShowView.Render(w, vd)
-	fmt.Fprintln(w, gallery)
 }
 
 // Create is called whenever you submit the form ... se we create
@@ -73,7 +73,13 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		g.New.Render(w, vd)
 		return
 	}
-	fmt.Fprintln(w, gallery)
+	url, err := g.r.Get("show_gallery").URL("id", fmt.Sprintf("%d", gallery.ID))
+	if err != nil {
+		// TODO: Make this go to the index page
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
 //Galleries is the gallery struct!!!
@@ -81,6 +87,7 @@ type Galleries struct {
 	New      *views.View
 	ShowView *views.View
 	gs       models.GalleryService
+	r        *mux.Router
 }
 
 // GalleryForm is a struct to hold our gallery data, e.g. the title
