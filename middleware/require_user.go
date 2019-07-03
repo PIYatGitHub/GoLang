@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"../context"
+
 	"../models"
 )
 
@@ -30,7 +32,12 @@ func (mw *RequireUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 			http.Redirect(w, r, "/login", http.StatusFound)
 			return
 		}
+		ctx := r.Context()
+		ctx = context.WithUser(ctx, user)
+		r = r.WithContext(ctx)
+
 		fmt.Println("User Found: ... ", user)
 		next(w, r) // call next in line -- done!
+
 	})
 }
