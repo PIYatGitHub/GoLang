@@ -3,19 +3,48 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"../context"
 	"../models"
 	"../views"
+	"github.com/gorilla/mux"
 )
 
 // NewGallery creates a new gallery view - capt. obvious strikes again!!!
 // This function shall panic if there is some err.
 func NewGallery(gs models.GalleryService) *Galleries {
 	return &Galleries{
-		New: views.NewView("bootstrap", "galleries/new"),
-		gs:  gs,
+		New:      views.NewView("bootstrap", "galleries/new"),
+		ShowView: views.NewView("bootstrap", "galleries/show"),
+		gs:       gs,
 	}
+}
+
+// Show is called whenever you fetch all your galleries
+// GET /galleries/:id
+func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var vd views.Data
+	idStr := vars["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid gallery ID", http.StatusNotFound)
+		return
+	}
+	gallery, err := g.gs.ByID(uint(id))
+	if err != nil {
+		switch err {
+		case models.ErrNotFound:
+			http.Error(w, "Gallery not found", http.StatusNotFound)
+		default:
+			http.Error(w, "Whoops! Something went very wrong...", http.StatusInternalServerError)
+		}
+		return
+	}
+	vd.Yield = gallery
+	g.ShowView.Render(w, vd)
+	fmt.Fprintln(w, gallery)
 }
 
 // Create is called whenever you submit the form ... se we create
@@ -49,8 +78,9 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 
 //Galleries is the gallery struct!!!
 type Galleries struct {
-	New *views.View
-	gs  models.GalleryService
+	New      *views.View
+	ShowView *views.View
+	gs       models.GalleryService
 }
 
 // GalleryForm is a struct to hold our gallery data, e.g. the title

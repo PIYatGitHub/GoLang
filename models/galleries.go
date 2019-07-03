@@ -16,6 +16,7 @@ type GalleryService interface {
 
 // GalleryDB holds the CRUD for galleries
 type GalleryDB interface {
+	ByID(id uint) (*Gallery, error)
 	Create(gallery *Gallery) error
 }
 
@@ -75,4 +76,13 @@ type galleryService struct {
 
 func (gg *galleryGorm) Create(gallery *Gallery) error {
 	return gg.db.Create(gallery).Error
+}
+
+//ByID will lookup the gallery by its id;
+// it will return a gallery,nil or nil for the gallery and a specific error
+func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
+	var gallery Gallery
+	db := gg.db.Where("id = ?", id)
+	err := first(db, &gallery)
+	return &gallery, err
 }
