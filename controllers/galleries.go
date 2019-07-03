@@ -30,11 +30,6 @@ func (g *Galleries) Show(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	user := context.User(r.Context())
-	if gallery.UserID != user.ID {
-		http.Error(w, "Gallery not found!", http.StatusNotFound)
-		return
-	}
 	var vd views.Data
 	vd.Yield = gallery
 	g.ShowView.Render(w, vd)
@@ -47,9 +42,41 @@ func (g *Galleries) Edit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		http.Error(w, "Gallery not found", http.StatusNotFound)
+		return
+	}
 	var vd views.Data
 	vd.Yield = gallery
 	g.EditView.Render(w, vd)
+}
+
+// Update is called whenever you want to submit the updates to your gallery
+// POST /galleries/:id/update
+func (g *Galleries) Update(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+	var form GalleryForm
+	var vd views.Data
+	vd.Yield = gallery
+
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		http.Error(w, "Gallery not found!", http.StatusNotFound)
+		return
+	}
+
+	if err := parseForm(r, &form); err != nil {
+		vd.SetAlert(err)
+		g.EditView.Render(w, vd)
+		return
+	}
+
+	gallery.Title = form.Title
+	fmt.Fprintln(w, gallery)
 }
 
 // Create is called whenever you submit the form ... se we create
