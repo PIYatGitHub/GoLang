@@ -3,7 +3,6 @@ package middleware
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"../models"
 )
@@ -21,10 +20,17 @@ func (mw *RequireUser) Apply(next http.Handler) http.HandlerFunc {
 //ApplyFn is the same as apply, but uses HandlerFunc instead of Handler
 func (mw *RequireUser) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//if the user is logged in...
-		t := time.Now()
-		fmt.Println("Fake req started @:", t)
+		cookie, err := r.Cookie("remember_token")
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		user, err := mw.ByRemember(cookie.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+		fmt.Println("User Found: ... ", user)
 		next(w, r) // call next in line -- done!
-		fmt.Println("Fake req ending at:", time.Since(t))
 	})
 }
