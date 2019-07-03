@@ -73,7 +73,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		g.New.Render(w, vd)
 		return
 	}
-	url, err := g.r.Get("show_gallery").URL("id", fmt.Sprintf("%d", gallery.ID))
+	url, err := g.r.Get("show_gallery").URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
 		// TODO: Make this go to the index page
 		http.Redirect(w, r, "/", http.StatusFound)
