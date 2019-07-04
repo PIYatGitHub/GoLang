@@ -130,7 +130,7 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		g.New.Render(w, vd)
 		return
 	}
-	url, err := g.r.Get("show_gallery").URL("id", fmt.Sprintf("%v", gallery.ID))
+	url, err := g.r.Get("edit_gallery").URL("id", fmt.Sprintf("%v", gallery.ID))
 	if err != nil {
 		// TODO: Make this go to the index page
 		http.Redirect(w, r, "/", http.StatusFound)
@@ -159,8 +159,7 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		g.EditView.Render(w, vd)
 		return
 	}
-	//TODO: send them back to the index
-	fmt.Fprintln(w, "deletion succeeded!")
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 }
 
 // helper to get galleries by id
