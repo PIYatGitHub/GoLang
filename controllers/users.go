@@ -52,7 +52,7 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		u.LoginView.Render(w, r, vd)
 		return
 	}
-	http.Redirect(w, r, "/cookietest", http.StatusFound)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 	fmt.Fprintln(w, user)
 }
 
@@ -75,21 +75,6 @@ func (u *Users) signIn(w http.ResponseWriter, user *models.User) error {
 	}
 	http.SetCookie(w, &cookie)
 	return nil
-}
-
-//CookieTest will go eventually, but for now it reads the cookie
-func (u *Users) CookieTest(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("remember_token")
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	user, err := u.us.ByRemember(cookie.Value)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	fmt.Fprintln(w, user)
 }
 
 // Create is called whenever you submit the form ... se we create
@@ -118,7 +103,7 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
-	http.Redirect(w, r, "/cookietest", http.StatusFound)
+	http.Redirect(w, r, "/galleries", http.StatusFound)
 	fmt.Fprintln(w, user)
 }
 
