@@ -11,13 +11,13 @@
     <title>LensLocked.com</title>
   </head>
 <body>
-  {{template "navbar"}}
+  {{template "navbar" .}}
 
 <main role="main" class="container-fluid">
   {{if .Alert}}
     {{template "alert" .Alert}}
   {{end}}
-  
+
   <div class="starter-template">
     {{template "yield" .Yield}}
     <!-- we will create a dynamic template and load it here... -->

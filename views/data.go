@@ -1,5 +1,9 @@
 package views
 
+import (
+	"../models"
+)
+
 const (
 	// AlertLvlError turns the alert red
 	AlertLvlError = "danger"
@@ -24,6 +28,7 @@ type Alert struct {
 // it provides the Yield data for the generic template
 type Data struct {
 	Alert *Alert
+	User  *models.User
 	Yield interface{}
 }
 

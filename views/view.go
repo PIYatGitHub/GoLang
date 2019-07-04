@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+
+	"../context"
 )
 
 var (
@@ -46,22 +48,25 @@ func addTemplateExt(files []string) {
 }
 
 func (v *View) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	v.Render(w, nil)
+	v.Render(w, r, nil)
 }
 
 // Render is used to render the view or throw an error otherwise...
-func (v *View) Render(w http.ResponseWriter, data interface{}) {
+func (v *View) Render(w http.ResponseWriter, r *http.Request, data interface{}) {
 	w.Header().Set("Content-type", "text/html")
-	switch data.(type) {
-	case Data: //do nothing
+	var vd Data
+	switch d := data.(type) {
+	case Data:
+		vd = d
 	default:
-		data = Data{
+		vd = Data{
 			Yield: data,
 		}
 	}
+	vd.User = context.User(r.Context())
 	var buff bytes.Buffer
 
-	if err := v.Template.ExecuteTemplate(&buff, v.Layout, data); err != nil {
+	if err := v.Template.ExecuteTemplate(&buff, v.Layout, vd); err != nil {
 		http.Error(w, "Something went wrong. Please email support@lenslocked.com if the issue persists",
 			http.StatusInternalServerError)
 		return
