@@ -18,6 +18,7 @@ type GalleryService interface {
 type GalleryDB interface {
 	ByID(id uint) (*Gallery, error)
 	Create(gallery *Gallery) error
+	Update(gallery *Gallery) error
 }
 
 //NewGalleryService will init the gallery service and will make it available
@@ -64,6 +65,14 @@ func (gv *galleryValidator) Create(gallery *Gallery) error {
 	return gv.GalleryDB.Create(gallery)
 }
 
+func (gv *galleryValidator) Update(gallery *Gallery) error {
+	if err := runGalleryValFuncs(gallery, gv.titleRequired,
+		gv.userIDRequired); err != nil {
+		return err
+	}
+	return gv.GalleryDB.Update(gallery)
+}
+
 var _ GalleryDB = &galleryGorm{}
 
 type galleryGorm struct {
@@ -76,6 +85,10 @@ type galleryService struct {
 
 func (gg *galleryGorm) Create(gallery *Gallery) error {
 	return gg.db.Create(gallery).Error
+}
+
+func (gg *galleryGorm) Update(gallery *Gallery) error {
+	return gg.db.Save(gallery).Error
 }
 
 //ByID will lookup the gallery by its id;
