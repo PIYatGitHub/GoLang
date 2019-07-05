@@ -62,10 +62,8 @@ func (is *imageService) ByGalleryID(galleryID uint) ([]string, error) {
 		return nil, err
 	}
 	for i := range images {
-		//puts %5c
 		images[i] = "\\" + images[i]
 		images[i] = strings.ReplaceAll(images[i], "\\", "/")
 	}
-	fmt.Println("change ?> >>>>>>>>>>>>>", images)
 	return images, nil
 }

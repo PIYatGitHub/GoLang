@@ -76,13 +76,18 @@
 {{end}}
 
 {{define "galleryImages"}}
-<ul>
-  {{range .Images}}
-  <li>
-    {{.}}
-  </li>
+  {{range .ImagesSplitN 6}}
+  <div class="col-md-2">
+    {{range .}}
+      <a href="{{.}}"><img src="{{.}}" alt="Gallery photograph" class="thumbnail"></a>
+    {{end}}
+  </div>
   {{end}}
-</ul>
+  <style>
+  .thumbnail {
+    width: 100%
+  }
+  </style>
 {{end}}
 
 {{define "deleteImageForm"}}

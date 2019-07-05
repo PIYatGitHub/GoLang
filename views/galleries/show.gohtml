@@ -6,10 +6,17 @@
   </div>
 </div>
 <div class="row">
-  {{range .Images}}
+  {{range .ImagesSplitN 3}}
   <div class="col-md-4">
-    <img src="{{.}}" alt="Gallery photograph">
+    {{range .}}
+      <a href="{{.}}"><img src="{{.}}" alt="Gallery photograph" class="thumbnail"></a>
+    {{end}}
   </div>
   {{end}}
 </div>
+<style>
+.thumbnail {
+  width: 100%
+}
+</style>
 {{end}}
