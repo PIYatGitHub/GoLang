@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 //ImageService is the interfacewe nned for our images
@@ -56,9 +57,15 @@ func (is *imageService) mkImagePath(galleryID uint) (string, error) {
 
 func (is *imageService) ByGalleryID(galleryID uint) ([]string, error) {
 	galleryPath := is.imagePath(galleryID)
-	strings, err := filepath.Glob(galleryPath + "*")
+	images, err := filepath.Glob(galleryPath + "*")
 	if err != nil {
 		return nil, err
 	}
-	return strings, nil
+	for i := range images {
+		//puts %5c
+		images[i] = "\\" + images[i]
+		images[i] = strings.ReplaceAll(images[i], "\\", "/")
+	}
+	fmt.Println("change ?> >>>>>>>>>>>>>", images)
+	return images, nil
 }
