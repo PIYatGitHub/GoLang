@@ -144,6 +144,28 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
+//Delete will delete a gallery...duh
+func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
+	gallery, err := g.galleryByID(w, r)
+	if err != nil {
+		return
+	}
+	user := context.User(r.Context())
+	if gallery.UserID != user.ID {
+		http.Error(w, "Gallery not found", http.StatusNotFound)
+		return
+	}
+	var vd views.Data
+	err = g.gs.Delete(gallery.ID)
+	if err != nil {
+		vd.SetAlert(err)
+		vd.Yield = gallery
+		g.EditView.Render(w, r, vd)
+		return
+	}
+	http.Redirect(w, r, "/galleries", http.StatusFound)
+}
+
 // ImageUpload is called whenever you want to upload some images to your gallery
 // POST /galleries/:id/images
 func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
@@ -156,7 +178,6 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Gallery not found!", http.StatusNotFound)
 		return
 	}
-	// TODO: parse a multipart form
 	var vd views.Data
 	vd.Yield = gallery
 	err = r.ParseMultipartForm(maxMultipartMem)
@@ -190,9 +211,9 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
-// Delete is called whenever you want to delete your gallery
-// POST /galleries/:id/delete
-func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
+// ImageDelete is called whenever you want to delete some images to your gallery
+// POST /galleries/:id/images/:filename/delete
+func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 	gallery, err := g.galleryByID(w, r)
 	if err != nil {
 		return
@@ -202,15 +223,8 @@ func (g *Galleries) Delete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Gallery not found!", http.StatusNotFound)
 		return
 	}
-	var vd views.Data
-	err = g.gs.Delete(gallery.ID)
-	if err != nil {
-		vd.SetAlert(err)
-		vd.Yield = gallery
-		g.EditView.Render(w, r, vd)
-		return
-	}
-	http.Redirect(w, r, "/galleries", http.StatusFound)
+	target := mux.Vars(r)["filename"]
+	fmt.Fprintln(w, target)
 }
 
 // helper to get galleries by id

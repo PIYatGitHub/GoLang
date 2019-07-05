@@ -8,6 +8,17 @@ import (
 	"strings"
 )
 
+//Image is the image struct -- it will NOT go to the DB!
+type Image struct {
+	GalleryID uint
+	Filename  string
+}
+
+//Path will return the Path to the image... you would have never guessed!
+func (i *Image) Path() string {
+	return fmt.Sprintf("/images/galleries/%v/%v", i.GalleryID, i.Filename)
+}
+
 //ImageService is the interfacewe nned for our images
 type ImageService interface {
 	Create(galleryID uint, r io.ReadCloser, filename string) error
