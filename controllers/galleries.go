@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"strconv"
 
 	"../context"
@@ -19,13 +17,14 @@ const (
 
 // NewGallery creates a new gallery view - capt. obvious strikes again!!!
 // This function shall panic if there is some err.
-func NewGallery(gs models.GalleryService, r *mux.Router) *Galleries {
+func NewGallery(gs models.GalleryService, is models.ImageService, r *mux.Router) *Galleries {
 	return &Galleries{
 		New:       views.NewView("bootstrap", "galleries/new"),
 		ShowView:  views.NewView("bootstrap", "galleries/show"),
 		EditView:  views.NewView("bootstrap", "galleries/edit"),
 		IndexView: views.NewView("bootstrap", "galleries/index"),
 		gs:        gs,
+		is:        is,
 		r:         r,
 	}
 }
@@ -166,14 +165,6 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 		g.EditView.Render(w, r, vd)
 		return
 	}
-	//create the dir to contain our images
-	galleryPath := fmt.Sprintf("images/galleries/%v/", gallery.ID)
-	err = os.MkdirAll(galleryPath, 0755) // hackerage...
-	if err != nil {
-		vd.SetAlert(err)
-		g.EditView.Render(w, r, vd)
-		return
-	}
 
 	files := r.MultipartForm.File["images"] //could err if the field is NOT named images
 	for _, f := range files {
@@ -184,15 +175,7 @@ func (g *Galleries) ImageUpload(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		defer file.Close() // file is now open and will close eventually
-
-		dst, err := os.Create(galleryPath + f.Filename)
-		if err != nil {
-			vd.SetAlert(err)
-			g.EditView.Render(w, r, vd)
-			return
-		}
-		defer dst.Close()
-		_, err = io.Copy(dst, file)
+		err = g.is.Create(gallery.ID, file, f.Filename)
 		if err != nil {
 			vd.SetAlert(err)
 			g.EditView.Render(w, r, vd)
@@ -254,6 +237,7 @@ type Galleries struct {
 	EditView  *views.View
 	IndexView *views.View
 	gs        models.GalleryService
+	is        models.ImageService
 	r         *mux.Router
 }
 
