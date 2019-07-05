@@ -76,7 +76,13 @@
 {{end}}
 
 {{define "galleryImages"}}
-comming soon...
+<ul>
+  {{range .Images}}
+  <li>
+    {{.}}
+  </li>
+  {{end}}
+</ul>
 {{end}}
 
 {{define "deleteImageForm"}}
