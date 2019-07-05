@@ -22,7 +22,7 @@ func (i *Image) Path() string {
 //ImageService is the interfacewe nned for our images
 type ImageService interface {
 	Create(galleryID uint, r io.ReadCloser, filename string) error
-	ByGalleryID(galleryID uint) ([]string, error)
+	ByGalleryID(galleryID uint) ([]Image, error)
 }
 
 //imageService is the available API
@@ -66,15 +66,21 @@ func (is *imageService) mkImagePath(galleryID uint) (string, error) {
 	return galleryPath, nil
 }
 
-func (is *imageService) ByGalleryID(galleryID uint) ([]string, error) {
+func (is *imageService) ByGalleryID(galleryID uint) ([]Image, error) {
 	galleryPath := is.imagePath(galleryID)
 	images, err := filepath.Glob(galleryPath + "*")
 	if err != nil {
 		return nil, err
 	}
+	ret := make([]Image, len(images))
 	for i := range images {
 		images[i] = "\\" + images[i]
 		images[i] = strings.ReplaceAll(images[i], "\\", "/")
+		images[i] = strings.ReplaceAll(images[i], fmt.Sprintf("/images/galleries/%v/", galleryID), "")
+		ret[i] = Image{
+			Filename:  images[i],
+			GalleryID: galleryID,
+		}
 	}
-	return images, nil
+	return ret, nil
 }
