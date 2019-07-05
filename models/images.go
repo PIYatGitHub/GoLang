@@ -16,13 +16,19 @@ type Image struct {
 
 //Path will return the Path to the image... you would have never guessed!
 func (i *Image) Path() string {
-	return fmt.Sprintf("/images/galleries/%v/%v", i.GalleryID, i.Filename)
+	return "/" + i.OsPath()
+}
+
+//OsPath will return the Path to the image... but without the /
+func (i *Image) OsPath() string {
+	return fmt.Sprintf("images/galleries/%v/%v", i.GalleryID, i.Filename)
 }
 
 //ImageService is the interfacewe nned for our images
 type ImageService interface {
 	Create(galleryID uint, r io.ReadCloser, filename string) error
 	ByGalleryID(galleryID uint) ([]Image, error)
+	Delete(i *Image) error
 }
 
 //imageService is the available API
@@ -51,6 +57,10 @@ func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string)
 		return err
 	}
 	return nil
+}
+
+func (is *imageService) Delete(i *Image) error {
+	return os.Remove(i.OsPath())
 }
 
 func (is *imageService) imagePath(galleryID uint) string {

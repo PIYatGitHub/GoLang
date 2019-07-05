@@ -224,7 +224,24 @@ func (g *Galleries) ImageDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	target := mux.Vars(r)["filename"]
-	fmt.Fprintln(w, target)
+	i := models.Image{
+		Filename:  target,
+		GalleryID: gallery.ID,
+	}
+	err = g.is.Delete(&i)
+	if err != nil {
+		var vd views.Data
+		vd.Yield = gallery
+		vd.SetAlert(err)
+		g.EditView.Render(w, r, vd)
+		return
+	}
+	url, err := g.r.Get("edit_gallery").URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, r, "/galleries", http.StatusFound)
+		return
+	}
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
 // helper to get galleries by id
