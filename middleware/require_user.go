@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"../context"
 
@@ -31,6 +32,13 @@ func (mw *User) Apply(next http.Handler) http.HandlerFunc {
 //ApplyFn is the same as apply, but uses HandlerFunc instead of Handler
 func (mw *User) ApplyFn(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		//do not read the db for a static asset...
+		if strings.HasPrefix(path, "/assets/") ||
+			strings.HasPrefix(path, "/images/") {
+			next(w, r)
+			return
+		}
 		cookie, err := r.Cookie("remember_token")
 		if err != nil {
 			next(w, r)
