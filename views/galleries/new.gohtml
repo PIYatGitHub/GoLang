@@ -16,6 +16,7 @@
 
 {{define "galleryForm"}}
 <form action="/galleries" method="POST">
+  {{csrfField}}
   <div class="form-group">
     <label for="title">Gallery Title</label>
     <input type="text" name = "title" class="form-control" id="title" aria-describedby="galleryTitle" placeholder="Enter title here">

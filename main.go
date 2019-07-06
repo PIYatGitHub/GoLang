@@ -7,6 +7,8 @@ import (
 	"../lenslocked.com/controllers"
 	"./middleware"
 	"./models"
+	"./rand"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 )
 
@@ -32,6 +34,11 @@ func main() {
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUser(services.User)
 	galleriesC := controllers.NewGallery(services.Gallery, services.Image, r)
+	//// TODO: get this in a config variable....
+	isProd := false
+	code, err := rand.Bytes(32)
+	must(err)
+	csrfMw := csrf.Protect(code, csrf.Secure(isProd))
 	userMw := middleware.User{
 		UserService: services.User,
 	}
@@ -66,7 +73,7 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/images", requireUserMw.ApplyFn(galleriesC.ImageUpload)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete",
 		requireUserMw.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
-	http.ListenAndServe(":8080", userMw.Apply(r))
+	http.ListenAndServe(":8080", csrfMw(userMw.Apply(r)))
 }
 
 func must(err error) {
