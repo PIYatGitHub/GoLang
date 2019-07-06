@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,7 +17,10 @@ type Image struct {
 
 //Path will return the Path to the image... you would have never guessed!
 func (i *Image) Path() string {
-	return "/" + i.OsPath()
+	temp := url.URL{
+		Path: "/" + i.OsPath(),
+	}
+	return temp.String()
 }
 
 //OsPath will return the Path to the image... but without the /
