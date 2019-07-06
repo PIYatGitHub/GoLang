@@ -12,18 +12,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	host   = "localhost"
-	port   = 5432
-	user   = "postgres"
-	dbname = "lenslocked_dev"
-)
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port =%d user=%s dbname=%s sslmode=disable",
-		host, port, user, dbname)
-
-	services, err := models.NewServices(psqlInfo)
+	cfg := DefaultConfig()
+	dbCfg := DefaultPostgresConfiguration()
+	services, err := models.NewServices(dbCfg.Dialect(), dbCfg.ConnectionInfo())
 	must(err)
 	defer services.Close()
 	// services.DestructiveReset()
@@ -34,11 +26,10 @@ func main() {
 	staticC := controllers.NewStatic()
 	usersC := controllers.NewUser(services.User)
 	galleriesC := controllers.NewGallery(services.Gallery, services.Image, r)
-	//// TODO: get this in a config variable....
-	isProd := false
+
 	code, err := rand.Bytes(32)
 	must(err)
-	csrfMw := csrf.Protect(code, csrf.Secure(isProd))
+	csrfMw := csrf.Protect(code, csrf.Secure(cfg.IsProd()))
 	userMw := middleware.User{
 		UserService: services.User,
 	}
@@ -73,7 +64,10 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/images", requireUserMw.ApplyFn(galleriesC.ImageUpload)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}/images/{filename}/delete",
 		requireUserMw.ApplyFn(galleriesC.ImageDelete)).Methods("POST")
-	http.ListenAndServe(":8080", csrfMw(userMw.Apply(r)))
+
+	// TODO: config this
+	fmt.Printf("Launching server @ port: %d \n", cfg.Port)
+	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), csrfMw(userMw.Apply(r)))
 }
 
 func must(err error) {

@@ -8,11 +8,11 @@ import (
 
 	"../hash"
 	"../rand"
-	// added it not to get confused as of what is needed to run this...
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
+// TODO: config this
 const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
 const hmacSecretKey = "4wjht8wywr!^Y@$Yggwj8qeyrh139hSFYHEYFehjeo235"
 

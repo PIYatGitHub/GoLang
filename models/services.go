@@ -1,13 +1,19 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/jinzhu/gorm"
+	// added it not to get confused as of what is needed to run this...
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+)
 
 //NewServices will init all services with a single DB connection
-func NewServices(connectionInfo string) (*Services, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
+func NewServices(dialect, connectionInfo string) (*Services, error) {
+	// TODO: config this
+	db, err := gorm.Open(dialect, connectionInfo)
 	if err != nil {
 		return nil, err
 	}
+	db.LogMode(true)
 	return &Services{
 		User:    NewUserService(db),
 		Gallery: NewGalleryService(db),
