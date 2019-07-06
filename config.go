@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
 
 //main.go -- START CONFIG
 
@@ -39,19 +43,21 @@ func DefaultPostgresConfiguration() PostgresConfig {
 
 //Config is the default configuration for the environment
 type Config struct {
-	Port    int    `json:"port"`
-	Env     string `json:"env"`
-	Pepper  string `json:"pepper"`
-	HMACKey string `json:"hmac_key"`
+	Port     int            `json:"port"`
+	Env      string         `json:"env"`
+	Pepper   string         `json:"pepper"`
+	HMACKey  string         `json:"hmac_key"`
+	Database PostgresConfig `json:"database"`
 }
 
 //DefaultConfig will get you the port and the environment vars
 func DefaultConfig() Config {
 	return Config{
-		Port:    8080,
-		Env:     "dev",
-		Pepper:  "secret-random-string",
-		HMACKey: "secret-hmac-key",
+		Port:     8080,
+		Env:      "dev",
+		Pepper:   "secret-random-string",
+		HMACKey:  "secret-hmac-key",
+		Database: DefaultPostgresConfiguration(),
 	}
 }
 
@@ -62,10 +68,22 @@ func (c Config) IsProd() bool {
 
 //main.go -- END CONFIG
 
-//modes/users.go
-// const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
-// const hmacSecretKey = "4wjht8wywr!^Y@$Yggwj8qeyrh139hSFYHEYFehjeo235"
-
-//services.go -- START CONFIG
-
-//services.go -- END CONFIG
+//LoadConfig this will load from file -- if any...
+func LoadConfig(configReq bool) Config {
+	f, err := os.Open(".config")
+	if err != nil {
+		if configReq {
+			panic(err)
+		}
+		fmt.Println("Loading the default configuration...")
+		return DefaultConfig()
+	}
+	var c Config
+	dec := json.NewDecoder(f)
+	err = dec.Decode(&c)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Config loaded successfully...")
+	return c
+}
