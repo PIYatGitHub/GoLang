@@ -39,15 +39,19 @@ func DefaultPostgresConfiguration() PostgresConfig {
 
 //Config is the default configuration for the environment
 type Config struct {
-	Port int
-	Env  string
+	Port    int    `json:"port"`
+	Env     string `json:"env"`
+	Pepper  string `json:"pepper"`
+	HMACKey string `json:"hmac_key"`
 }
 
 //DefaultConfig will get you the port and the environment vars
 func DefaultConfig() Config {
 	return Config{
-		Port: 8080,
-		Env:  "dev",
+		Port:    8080,
+		Env:     "dev",
+		Pepper:  "secret-random-string",
+		HMACKey: "secret-hmac-key",
 	}
 }
 
@@ -62,9 +66,6 @@ func (c Config) IsProd() bool {
 // const userPwP = "wrjg82j8#$%^&#Rweg4128y8y8suTO(24#%9ghsdbu"
 // const hmacSecretKey = "4wjht8wywr!^Y@$Yggwj8qeyrh139hSFYHEYFehjeo235"
 
-// models./services.go
-// db, err := gorm.Open("postgres", connectionInfo)
-// if err != nil {
-// 	return nil, err
-// }
-// db.LogMode(true)
+//services.go -- START CONFIG
+
+//services.go -- END CONFIG
