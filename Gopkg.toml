@@ -49,10 +49,6 @@
   name = "gopkg.in/mailgun/mailgun-go.v1"
   version = "1.1.1"
 
-[[constraint]]
-  name = "lenslocked.com/context"
-  source = "https://github.com/PIYatGitHub/GoLang-LensLocked/tree/master/context/context.go"
-  
 [prune]
   go-tests = true
   unused-packages = true

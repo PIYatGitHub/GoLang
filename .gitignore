@@ -64,5 +64,3 @@ images/**
 .config
 notes/**
 .vscode/**
-
-vendor/
