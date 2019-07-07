@@ -5,11 +5,11 @@ import (
 	"encoding/base64"
 )
 
-// RememberTokenBytes is the value used to get the token...
-const RememberTokenBytes = 128
+const RememberTokenBytes = 32
 
-//Bytes will take in an integer n - the bytes count and will
-//return the bytes or an err if it was one.
+// Bytes will help us generate n random bytes, or will
+// return an error if there was one. This uses the crypto/rand
+// package so it is safe to use with things like remember tokens.
 func Bytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
@@ -19,7 +19,8 @@ func Bytes(n int) ([]byte, error) {
 	return b, nil
 }
 
-//NBytes will count the number of Bytes or an error if it cannot decode for some reason
+// NBytes returns the number of bytes used in the base64
+// URL encoded string
 func NBytes(base64String string) (int, error) {
 	b, err := base64.URLEncoding.DecodeString(base64String)
 	if err != nil {
@@ -28,7 +29,9 @@ func NBytes(base64String string) (int, error) {
 	return len(b), nil
 }
 
-//String will generate a string drom a byte slice (as a BASE6 encoded string!!!)
+// String will generate a byte slice of size nBytes and then
+// return a string that is the base64 URL encoded version
+// of that byte slice
 func String(nBytes int) (string, error) {
 	b, err := Bytes(nBytes)
 	if err != nil {
@@ -37,7 +40,8 @@ func String(nBytes int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-//RememberToken generatest the RememberToken for a predifined # of bytes
+// RememberToken is a helper function designed to generate
+// remember tokens of a predetermined byte size.
 func RememberToken() (string, error) {
 	return String(RememberTokenBytes)
 }
