@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"../context"
-	"../models"
-	"../views"
 	"github.com/gorilla/mux"
+	"lenslocked.com/context"
+	"lenslocked.com/models"
+	"lenslocked.com/views"
 )
 
 const (

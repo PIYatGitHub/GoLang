@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"log"
 
-	"../models"
+	"lenslocked.com/models"
 )
 
 const (

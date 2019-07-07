@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strings"
 
-	"../context"
+	"lenslocked.com/context"
 
-	"../models"
+	"lenslocked.com/models"
 )
 
 //RequireUser will make sure the user has logged in

@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	"../models"
+	"lenslocked.com/models"
 )
 
 const (

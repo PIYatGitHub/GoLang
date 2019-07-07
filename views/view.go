@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"../context"
 	"github.com/gorilla/csrf"
+	"lenslocked.com/context"
 )
 
 var (

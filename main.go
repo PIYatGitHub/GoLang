@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"../lenslocked.com/controllers"
-	"./middleware"
-	"./models"
-	"./rand"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
+	"lenslocked.com/controllers"
+	"lenslocked.com/middleware"
+	"lenslocked.com/models"
+	"lenslocked.com/rand"
 )
 
 func main() {

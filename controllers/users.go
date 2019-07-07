@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"../models"
-	"../rand"
-	"../views"
+	"lenslocked.com/models"
+	"lenslocked.com/rand"
+	"lenslocked.com/views"
 )
 
 // NewUser creates a new user view - capt. obvious strikes again!!!

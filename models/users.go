@@ -6,8 +6,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 
-	"../hash"
-	"../rand"
+	"lenslocked.com/hash"
+	"lenslocked.com/rand"
 
 	"golang.org/x/crypto/bcrypt"
 )

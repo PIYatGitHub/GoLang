@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"../views"
+	"lenslocked.com/views"
 )
 
 // NewStatic instantiates the static pages as views...
