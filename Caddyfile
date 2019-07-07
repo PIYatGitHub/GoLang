@@ -1,6 +1,0 @@
-screencast.lenslocked.com {
-  gzip
-  proxy / localhost:3000 {
-    transparent
-  }
-}
