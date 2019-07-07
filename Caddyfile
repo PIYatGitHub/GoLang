@@ -1,0 +1,6 @@
+piy-lenslocked-demo.com{
+gzip
+proxy / localhost:8080 {
+    transparent
+  }
+}
