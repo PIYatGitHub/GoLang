@@ -1,1 +1,1 @@
-web: lenslocked
+web: lenslocked.com
