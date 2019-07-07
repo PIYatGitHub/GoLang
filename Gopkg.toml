@@ -45,11 +45,12 @@
   branch = "master"
   name = "golang.org/x/crypto"
 
+  
 [prune]
   go-tests = true
   unused-packages = true
   
 [metadata.heroku]
-  root-package = "github.com/apoc64/qs_go"
+  root-package = "github.com/apoc64/lenslocked"
   go-version = "1.10.3"
   install = [ "./..." ]
