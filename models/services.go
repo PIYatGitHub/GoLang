@@ -2,15 +2,11 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
-	// added it not to get confused as of what is needed to run this...
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-// ServicesConfig is the type of function you use to meke the
-//config magic happen!
 type ServicesConfig func(*Services) error
 
-//WithGorm will con the DB connection.
 func WithGorm(dialect, connectionInfo string) ServicesConfig {
 	return func(s *Services) error {
 		db, err := gorm.Open(dialect, connectionInfo)
@@ -22,7 +18,6 @@ func WithGorm(dialect, connectionInfo string) ServicesConfig {
 	}
 }
 
-//WithLogMode will config the db log mode flag
 func WithLogMode(mode bool) ServicesConfig {
 	return func(s *Services) error {
 		s.db.LogMode(mode)
@@ -30,7 +25,6 @@ func WithLogMode(mode bool) ServicesConfig {
 	}
 }
 
-//WithUser will config the user service
 func WithUser(pepper, hmacKey string) ServicesConfig {
 	return func(s *Services) error {
 		s.User = NewUserService(s.db, pepper, hmacKey)
@@ -38,7 +32,6 @@ func WithUser(pepper, hmacKey string) ServicesConfig {
 	}
 }
 
-//WithGallery will config the gallery service
 func WithGallery() ServicesConfig {
 	return func(s *Services) error {
 		s.Gallery = NewGalleryService(s.db)
@@ -46,7 +39,6 @@ func WithGallery() ServicesConfig {
 	}
 }
 
-//WithImage will config the image service
 func WithImage() ServicesConfig {
 	return func(s *Services) error {
 		s.Image = NewImageService()
@@ -54,7 +46,6 @@ func WithImage() ServicesConfig {
 	}
 }
 
-//NewServices will init all services with a single DB connection
 func NewServices(cfgs ...ServicesConfig) (*Services, error) {
 	var s Services
 	for _, cfg := range cfgs {
@@ -65,7 +56,6 @@ func NewServices(cfgs ...ServicesConfig) (*Services, error) {
 	return &s, nil
 }
 
-// Services defines all we have -- for start it is Gallery and User services
 type Services struct {
 	Gallery GalleryService
 	User    UserService
@@ -73,21 +63,21 @@ type Services struct {
 	db      *gorm.DB
 }
 
-// Close will terminate the connection to the DB!
+// Closes the database connection
 func (s *Services) Close() error {
 	return s.db.Close()
 }
 
-//DestructiveReset deletes all available tables. NEVER EVER RUN IN PROD!!!!!
+// DestructiveReset drops all tables and rebuilds them
 func (s *Services) DestructiveReset() error {
-	err := s.db.DropTableIfExists(&User{}, &Gallery{}).Error
+	err := s.db.DropTableIfExists(&User{}, &Gallery{}, &pwReset{}).Error
 	if err != nil {
 		return err
 	}
 	return s.AutoMigrate()
 }
 
-//AutoMigrate will migrat the db tables
+// AutoMigrate will attempt to automatically migrate all tables
 func (s *Services) AutoMigrate() error {
-	return s.db.AutoMigrate(&User{}, &Gallery{}).Error
+	return s.db.AutoMigrate(&User{}, &Gallery{}, &pwReset{}).Error
 }

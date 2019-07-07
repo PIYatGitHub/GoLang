@@ -1,3 +1,9 @@
-/*lenslocked.com -- styles*/
-.thumbnail {width: 100%; margin-bottom:0.5em;}
-footer{padding-top: 3em;}
+/* LensLocked.com styles */
+.thumbnail {
+  width: 100%;
+  margin-bottom: 6px;;
+}
+
+footer {
+  padding-top: 60px;
+}

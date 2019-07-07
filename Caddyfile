@@ -1,6 +1,6 @@
-piy-lenslocked-demo.com{
-gzip
-proxy / localhost:8080 {
+screencast.lenslocked.com {
+  gzip
+  proxy / localhost:3000 {
     transparent
   }
 }

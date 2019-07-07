@@ -2,7 +2,8 @@ package models
 
 import "github.com/jinzhu/gorm"
 
-// Gallery will represent the core of our app - what the user is able to see
+// Gallery is our image container resources that visitors
+// view
 type Gallery struct {
 	gorm.Model
 	UserID uint    `gorm:"not_null;index"`
@@ -10,53 +11,78 @@ type Gallery struct {
 	Images []Image `gorm:"-"`
 }
 
-//ImagesSplitN will be used to split our images and display them in a better way...
 func (g *Gallery) ImagesSplitN(n int) [][]Image {
 	ret := make([][]Image, n)
 	for i := 0; i < n; i++ {
 		ret[i] = make([]Image, 0)
 	}
 	for i, img := range g.Images {
+		// % is the remainder operator in Go
+		// eg:
+		//    0%3 = 0
+		//    1%3 = 1
+		//    2%3 = 2
+		//    3%3 = 0
+		//    4%3 = 1
+		//    5%3 = 2
 		bucket := i % n
 		ret[bucket] = append(ret[bucket], img)
 	}
 	return ret
 }
 
-//GalleryService is the available API
 type GalleryService interface {
 	GalleryDB
 }
 
-// GalleryDB holds the CRUD for galleries
 type GalleryDB interface {
-	ByUserID(userID uint) ([]Gallery, error)
 	ByID(id uint) (*Gallery, error)
+	ByUserID(userID uint) ([]Gallery, error)
 	Create(gallery *Gallery) error
 	Update(gallery *Gallery) error
 	Delete(id uint) error
 }
 
-//NewGalleryService will init the gallery service and will make it available
 func NewGalleryService(db *gorm.DB) GalleryService {
 	return &galleryService{
 		GalleryDB: &galleryValidator{&galleryGorm{db}},
 	}
 }
 
+type galleryService struct {
+	GalleryDB
+}
+
 type galleryValidator struct {
 	GalleryDB
 }
 
-type galleryValFunc func(*Gallery) error
-
-func runGalleryValFuncs(gallery *Gallery, fns ...galleryValFunc) error {
-	for _, fn := range fns {
-		if err := fn(gallery); err != nil {
-			return err
-		}
+func (gv *galleryValidator) Create(gallery *Gallery) error {
+	err := runGalleryValFuncs(gallery,
+		gv.userIDRequired,
+		gv.titleRequired)
+	if err != nil {
+		return err
 	}
-	return nil
+	return gv.GalleryDB.Create(gallery)
+}
+
+func (gv *galleryValidator) Update(gallery *Gallery) error {
+	err := runGalleryValFuncs(gallery,
+		gv.userIDRequired,
+		gv.titleRequired)
+	if err != nil {
+		return err
+	}
+	return gv.GalleryDB.Update(gallery)
+}
+
+// Delete will delete the gallery with the provided ID
+func (gv *galleryValidator) Delete(id uint) error {
+	if id <= 0 {
+		return ErrIDInvalid
+	}
+	return gv.GalleryDB.Delete(id)
 }
 
 func (gv *galleryValidator) userIDRequired(g *Gallery) error {
@@ -73,37 +99,26 @@ func (gv *galleryValidator) titleRequired(g *Gallery) error {
 	return nil
 }
 
-func (gv *galleryValidator) Create(gallery *Gallery) error {
-	if err := runGalleryValFuncs(gallery, gv.titleRequired,
-		gv.userIDRequired); err != nil {
-		return err
-	}
-	return gv.GalleryDB.Create(gallery)
-}
-
-func (gv *galleryValidator) Update(gallery *Gallery) error {
-	if err := runGalleryValFuncs(gallery, gv.titleRequired,
-		gv.userIDRequired); err != nil {
-		return err
-	}
-	return gv.GalleryDB.Update(gallery)
-}
-
-func (gv *galleryValidator) Delete(id uint) error {
-	if id <= 0 {
-		return ErrInvalidID
-	}
-	return gv.GalleryDB.Delete(id)
-}
-
 var _ GalleryDB = &galleryGorm{}
 
 type galleryGorm struct {
 	db *gorm.DB
 }
 
-type galleryService struct {
-	GalleryDB
+func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
+	var gallery Gallery
+	db := gg.db.Where("id = ?", id)
+	err := first(db, &gallery)
+	return &gallery, err
+}
+
+func (gg *galleryGorm) ByUserID(userID uint) ([]Gallery, error) {
+	var galleries []Gallery
+	err := gg.db.Where("user_id = ?", userID).Find(&galleries).Error
+	if err != nil {
+		return nil, err
+	}
+	return galleries, nil
 }
 
 func (gg *galleryGorm) Create(gallery *Gallery) error {
@@ -119,21 +134,13 @@ func (gg *galleryGorm) Delete(id uint) error {
 	return gg.db.Delete(&gallery).Error
 }
 
-//ByID will lookup the gallery by its id;
-// it will return a gallery,nil or nil for the gallery and a specific error
-func (gg *galleryGorm) ByID(id uint) (*Gallery, error) {
-	var gallery Gallery
-	db := gg.db.Where("id = ?", id)
-	err := first(db, &gallery)
-	return &gallery, err
-}
+type galleryValFunc func(*Gallery) error
 
-//ByUserID will lookup the all tge galleries, belonging to a user;
-func (gg *galleryGorm) ByUserID(userID uint) ([]Gallery, error) {
-	var galleries []Gallery
-	err := gg.db.Where("user_id = ?", userID).Find(&galleries).Error
-	if err != nil {
-		return nil, err
+func runGalleryValFuncs(gallery *Gallery, fns ...galleryValFunc) error {
+	for _, fn := range fns {
+		if err := fn(gallery); err != nil {
+			return err
+		}
 	}
-	return galleries, nil
+	return nil
 }

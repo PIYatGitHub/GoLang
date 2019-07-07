@@ -4,10 +4,10 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Title</th>
-          <th scope="col">View</th>
-          <th scope="col">Edit</th>
+          <th>ID</th>
+          <th>Title</th>
+          <th>View</th>
+          <th>Edit</th>
         </tr>
       </thead>
       <tbody>
@@ -15,13 +15,23 @@
         <tr>
           <th scope="row">{{.ID}}</th>
           <td>{{.Title}}</td>
-          <td><a href="/galleries/{{.ID}}">View</a></td>
-          <td><a href="/galleries/{{.ID}}/edit">Edit</a></td>
+          <td>
+            <a href="/galleries/{{.ID}}">
+              View
+            </a>
+          </td>
+          <td>
+            <a href="/galleries/{{.ID}}/edit">
+              Edit
+            </a>
+          </td>
         </tr>
         {{end}}
       </tbody>
     </table>
-    <a class="btn btn-primary" href="/galleries/new">New Gallery</a>
+    <a href="/galleries/new" class="btn btn-primary">
+      New Gallery
+    </a>
   </div>
 </div>
 {{end}}

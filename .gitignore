@@ -54,9 +54,8 @@ builds/**/images/*
 *.xxjson
 
 
-# Anything under a tmp && exp folder
+# Anything under a tmp folder
 **/tmp/*
-**/exp/*
 
 # Don't include our binary
 lenslocked.com

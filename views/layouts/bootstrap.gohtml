@@ -1,38 +1,29 @@
 {{define "bootstrap"}}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-     integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="/assets/styles.css" rel="stylesheet">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="A Bootstrap layout for all our needs">
-    <meta name="author" content="Petar Yonkov during the learn golang course">
     <title>LensLocked.com</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/styles.css" rel="stylesheet">
   </head>
-<body>
-  {{template "navbar" .}}
 
-<main role="main" class="container-fluid">
-  {{if .Alert}}
-    {{template "alert" .Alert}}
-  {{end}}
+  <body>
+    {{template "navbar" .}}
 
-  <div class="starter-template">
-    {{template "yield" .Yield}}
-    <!-- we will create a dynamic template and load it here... -->
-  </div>
-</main>
+    <div class="container-fluid">
+      {{if .Alert}}
+        {{template "alert" .Alert}}
+      {{end}}
+      {{template "yield" .Yield}}
 
-<footer>
-<p>&COPY; 2019 PIY during the learn GO course! </p>
-</footer>
+      {{template "footer"}}
+    </div>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-</body>
+    <!-- jquery & Bootstrap JS -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
+    </script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
+    </script>
+  </body>
 </html>
 {{end}}

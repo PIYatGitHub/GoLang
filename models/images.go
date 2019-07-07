@@ -9,53 +9,47 @@ import (
 	"strings"
 )
 
-//Image is the image struct -- it will NOT go to the DB!
+// Image is NOT stored in the database
 type Image struct {
 	GalleryID uint
 	Filename  string
 }
 
-//Path will return the Path to the image... you would have never guessed!
 func (i *Image) Path() string {
 	temp := url.URL{
-		Path: "/" + i.OsPath(),
+		Path: "/" + i.RelativePath(),
 	}
 	return temp.String()
 }
 
-//OsPath will return the Path to the image... but without the /
-func (i *Image) OsPath() string {
+func (i *Image) RelativePath() string {
 	return fmt.Sprintf("images/galleries/%v/%v", i.GalleryID, i.Filename)
 }
 
-//ImageService is the interfacewe nned for our images
 type ImageService interface {
-	Create(galleryID uint, r io.ReadCloser, filename string) error
+	Create(galleryID uint, r io.Reader, filename string) error
 	ByGalleryID(galleryID uint) ([]Image, error)
 	Delete(i *Image) error
 }
 
-//imageService is the available API
-type imageService struct{}
-
-//NewImageService will init the gallery service and will make it available
 func NewImageService() ImageService {
 	return &imageService{}
 }
 
-func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string) error {
-	defer r.Close()
+type imageService struct{}
+
+func (is *imageService) Create(galleryID uint, r io.Reader, filename string) error {
 	path, err := is.mkImagePath(galleryID)
 	if err != nil {
 		return err
 	}
-
+	// Create a destination file
 	dst, err := os.Create(path + filename)
 	if err != nil {
 		return err
 	}
 	defer dst.Close()
-
+	// Copy reader data to the destination file
 	_, err = io.Copy(dst, r)
 	if err != nil {
 		return err
@@ -63,8 +57,25 @@ func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string)
 	return nil
 }
 
+func (is *imageService) ByGalleryID(galleryID uint) ([]Image, error) {
+	path := is.imagePath(galleryID)
+	imgStrings, err := filepath.Glob(path + "*")
+	if err != nil {
+		return nil, err
+	}
+	ret := make([]Image, len(imgStrings))
+	for i := range imgStrings {
+		imgStrings[i] = strings.Replace(imgStrings[i], path, "", 1)
+		ret[i] = Image{
+			Filename:  imgStrings[i],
+			GalleryID: galleryID,
+		}
+	}
+	return ret, nil
+}
+
 func (is *imageService) Delete(i *Image) error {
-	return os.Remove(i.OsPath())
+	return os.Remove(i.RelativePath())
 }
 
 func (is *imageService) imagePath(galleryID uint) string {
@@ -73,28 +84,9 @@ func (is *imageService) imagePath(galleryID uint) string {
 
 func (is *imageService) mkImagePath(galleryID uint) (string, error) {
 	galleryPath := is.imagePath(galleryID)
-	err := os.MkdirAll(galleryPath, 0755) // hackerage...
+	err := os.MkdirAll(galleryPath, 0755)
 	if err != nil {
 		return "", err
 	}
 	return galleryPath, nil
-}
-
-func (is *imageService) ByGalleryID(galleryID uint) ([]Image, error) {
-	galleryPath := is.imagePath(galleryID)
-	images, err := filepath.Glob(galleryPath + "*")
-	if err != nil {
-		return nil, err
-	}
-	ret := make([]Image, len(images))
-	for i := range images {
-		images[i] = "\\" + images[i]
-		images[i] = strings.ReplaceAll(images[i], "\\", "/")
-		images[i] = strings.ReplaceAll(images[i], fmt.Sprintf("/images/galleries/%v/", galleryID), "")
-		ret[i] = Image{
-			Filename:  images[i],
-			GalleryID: galleryID,
-		}
-	}
-	return ret, nil
 }

@@ -7,7 +7,7 @@ import (
 	"hash"
 )
 
-// NewHMAC creates the new HMAC hash and writes it to the obj.
+// NewHMAC creates and returns a new HMAC object
 func NewHMAC(key string) HMAC {
 	h := hmac.New(sha256.New, []byte(key))
 	return HMAC{
@@ -15,16 +15,17 @@ func NewHMAC(key string) HMAC {
 	}
 }
 
-// Hash makes the hashing happen and returns the appropriate value
+// HMAC is a wrapper around the crypto/hmac package making
+// it a little easier to use in our code.
+type HMAC struct {
+	hmac hash.Hash
+}
+
+// Hash will hash the provided input string using HMAC with
+// the secret key provided when the HMAC object was created
 func (h HMAC) Hash(input string) string {
 	h.hmac.Reset()
 	h.hmac.Write([]byte(input))
 	b := h.hmac.Sum(nil)
 	return base64.URLEncoding.EncodeToString(b)
-}
-
-// HMAC contains the init for the HMAC
-//and save ourselves from lumping secret codes arround
-type HMAC struct {
-	hmac hash.Hash
 }

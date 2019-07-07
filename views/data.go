@@ -3,32 +3,31 @@ package views
 import (
 	"html/template"
 	"log"
+	"net/http"
+	"time"
 
 	"lenslocked.com/models"
 )
 
 const (
-	// AlertLvlError turns the alert red
-	AlertLvlError = "danger"
-	// AlertLvlWarning turns the alert yellow
+	AlertLvlError   = "danger"
 	AlertLvlWarning = "warning"
-	// AlertLvlInfo turns the alert blue
-	AlertLvlInfo = "info"
-	// AlertLvlSuccess turns the alert green
+	AlertLvlInfo    = "info"
 	AlertLvlSuccess = "success"
-	//AlertMsgGeneric is just a generic error msg we show
-	AlertMsgGeneric = "Something went wrong. Please try again and do contact us if the problem persists."
+
+	// AlertMsgGeneric is displayed when any random error
+	// is encountered by our backend.
+	AlertMsgGeneric = "Something went wrong. Please try again, and contact us if the problem persists."
 )
 
-//Alert is the data passed in to the Alert
-//it has two fields as the level one denotes what type of msg we sho
+// Alert is used to render Bootstrap Alert messages in templates
 type Alert struct {
 	Level   string
 	Message string
 }
 
-// Data is the generic placeholder. It gets the Alert struct +
-// it provides the Yield data for the generic template
+// Data is the top level structure that views expect data
+// to come in.
 type Data struct {
 	Alert *Alert
 	User  *models.User
@@ -36,8 +35,6 @@ type Data struct {
 	Yield interface{}
 }
 
-//SetAlert will get in an error, check if it has a public property
-//and if it does it will display it, otherwise it will add a generic error message.
 func (d *Data) SetAlert(err error) {
 	if pErr, ok := err.(PublicError); ok {
 		d.Alert = &Alert{
@@ -53,7 +50,6 @@ func (d *Data) SetAlert(err error) {
 	}
 }
 
-//AlertError is a helper func...
 func (d *Data) AlertError(msg string) {
 	d.Alert = &Alert{
 		Level:   AlertLvlError,
@@ -61,8 +57,67 @@ func (d *Data) AlertError(msg string) {
 	}
 }
 
-//PublicError is the interface used to get them public errors
 type PublicError interface {
 	error
 	Public() string
+}
+
+func persistAlert(w http.ResponseWriter, alert Alert) {
+	expiresAt := time.Now().Add(5 * time.Minute)
+	lvl := http.Cookie{
+		Name:     "alert_level",
+		Value:    alert.Level,
+		Expires:  expiresAt,
+		HttpOnly: true,
+	}
+	msg := http.Cookie{
+		Name:     "alert_message",
+		Value:    alert.Message,
+		Expires:  expiresAt,
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &lvl)
+	http.SetCookie(w, &msg)
+}
+
+func clearAlert(w http.ResponseWriter) {
+	lvl := http.Cookie{
+		Name:     "alert_level",
+		Value:    "",
+		Expires:  time.Now(),
+		HttpOnly: true,
+	}
+	msg := http.Cookie{
+		Name:     "alert_message",
+		Value:    "",
+		Expires:  time.Now(),
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &lvl)
+	http.SetCookie(w, &msg)
+}
+
+func getAlert(r *http.Request) *Alert {
+	lvl, err := r.Cookie("alert_level")
+	if err != nil {
+		return nil
+	}
+	msg, err := r.Cookie("alert_message")
+	if err != nil {
+		return nil
+	}
+	alert := Alert{
+		Level:   lvl.Value,
+		Message: msg.Value,
+	}
+	return &alert
+}
+
+// RedirectAlert accepts all the normal params for an
+// http.Redirect and performs a redirect, but only after
+// persisting the provided alert in a cookie so that it can
+// be displayed when the new page is loaded.
+func RedirectAlert(w http.ResponseWriter, r *http.Request, urlStr string, code int, alert Alert) {
+	persistAlert(w, alert)
+	http.Redirect(w, r, urlStr, code)
 }
