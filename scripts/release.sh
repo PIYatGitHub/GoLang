@@ -13,7 +13,7 @@ ssh root@142.93.141.167 "rm -rf /root/go/src/lenslocked.com"
 echo "  Code deleted successfully!"
 
 echo "  Uploading code..."
-rsync -avr --exclude '.git/*' --exclude 'tmp/*' --exclude 'images/*' ./ root@142.93.141.167:/root/go/src/lenslocked.com/
+rsync  -avr --exclude '.git/*' --exclude 'tmp/*' --exclude 'images/*' ./ root@142.93.141.167:/root/go/src/lenslocked.com/
 echo "  Code uploaded successfully!"
 
 echo "  Go getting deps..."
