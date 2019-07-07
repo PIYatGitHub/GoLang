@@ -30,10 +30,7 @@
   install = [ "./..." ]
   
   
-  ignored = [
-  "lenslocked.com/controllers/galelries", "lenslocked.com/controllers/helpers", "lenslocked.com/controllers/static",
-	"lenslocked.com/controllers/uesrs", 
-]
+  ignored = ["lenslocked.com/controllers"]
 
 [[constraint]]
   name = "github.com/gorilla/csrf"
