@@ -24,10 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-[metadata.heroku]
-  root-package = "github.com/apoc64/lenslocked"
-  go-version = "1.12.6"
-  install = [ "./..." ]
 
 [[constraint]]
   name = "github.com/gorilla/csrf"
@@ -60,3 +56,8 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+  [metadata.heroku]
+  root-package = "github.com/apoc64/lenslocked"
+  go-version = "1.12.6"
+  install = [ "./..." ]
