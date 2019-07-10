@@ -24,6 +24,10 @@
 #   go-tests = true
 #   unused-packages = true
 
+ [[constraint]]
+   name = "github.com/PIYatGitHub/GoLang-LensLocked"
+   version = "1.0.0"
+
  ignored = ["github.com/PIYatGitHub/GoLang-LensLocked*"]
 [[constraint]]
   name = "github.com/gorilla/csrf"

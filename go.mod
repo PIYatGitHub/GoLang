@@ -1,6 +1,6 @@
 module github.com/PIYatGitHub/GoLang-LensLocked
 
-go 1.12
+go 1.10
 
 require (
 	github.com/gorilla/csrf v1.6.0
