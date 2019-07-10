@@ -1,4 +1,4 @@
-module github.com/PIYatGitHub/GoLang-LensLocked
+module lenslocked.com
 
 go 1.12
 
