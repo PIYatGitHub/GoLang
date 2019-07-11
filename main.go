@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/PIYAtGitHub/GoLang-LensLocked/controllers"
 	"github.com/PIYAtGitHub/GoLang-LensLocked/email"
@@ -21,6 +22,13 @@ func main() {
 
 	cfg := LoadConfig(*boolPtr)
 	dbCfg := cfg.Database
+
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		fmt.Println("$PORT must be set")
+	}
+
 	services, err := models.NewServices(
 		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
 		models.WithLogMode(!cfg.IsProd()),
@@ -88,8 +96,8 @@ func main() {
 
 	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
 
-	fmt.Printf("Starting the server on :%d...\n", cfg.Port)
-	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), csrfMw(userMw.Apply(r)))
+	fmt.Printf("Starting the server on :" + port)
+	http.ListenAndServe(":"+port, csrfMw(userMw.Apply(r)))
 }
 
 func must(err error) {
