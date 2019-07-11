@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"lenslocked.com/context"
-	"lenslocked.com/email"
-	"lenslocked.com/models"
-	"lenslocked.com/rand"
-	"lenslocked.com/views"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/context"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/email"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/models"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/rand"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/views"
 )
 
 // NewUsers is used to create a new Users controller.

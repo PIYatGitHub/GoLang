@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"lenslocked.com/models"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/models"
 )
 
 const (

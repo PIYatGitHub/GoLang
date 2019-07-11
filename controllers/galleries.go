@@ -8,9 +8,9 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"lenslocked.com/context"
-	"lenslocked.com/models"
-	"lenslocked.com/views"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/context"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/models"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/views"
 )
 
 const (

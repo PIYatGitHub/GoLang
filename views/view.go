@@ -11,7 +11,7 @@ import (
 
 	"github.com/gorilla/csrf"
 
-	"lenslocked.com/context"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/context"
 )
 
 var (

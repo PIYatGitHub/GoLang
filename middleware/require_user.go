@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"lenslocked.com/context"
-	"lenslocked.com/models"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/context"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/models"
 )
 
 type User struct {

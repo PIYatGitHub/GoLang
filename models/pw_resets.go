@@ -1,9 +1,9 @@
 package models
 
 import (
+	"github.com/PIYAtGitHub/GoLang-LensLocked/hash"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/rand"
 	"github.com/jinzhu/gorm"
-	"lenslocked.com/hash"
-	"lenslocked.com/rand"
 )
 
 type pwReset struct {

@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	"lenslocked.com/models"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/models"
 )
 
 const (

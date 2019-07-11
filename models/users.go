@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"lenslocked.com/hash"
-	"lenslocked.com/rand"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/hash"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/rand"
 
 	"github.com/jinzhu/gorm"
 
