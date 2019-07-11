@@ -50,10 +50,10 @@ func (c Config) IsProd() bool {
 
 func DefaultConfig() Config {
 	return Config{
-		Port:     3000,
-		Env:      "dev",
-		Pepper:   "secret-random-string",
-		HMACKey:  "secret-hmac-key",
+		Port:     443,
+		Env:      "prod",
+		Pepper:   "fe2u2efhvefjuehuivhu",
+		HMACKey:  "#$Y#whuighweuhwq2enn2o8yhe3289",
 		Database: DefaultPostgresConfig(),
 	}
 }

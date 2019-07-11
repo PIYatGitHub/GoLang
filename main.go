@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"lenslocked.com/controllers"
-	"lenslocked.com/email"
-	"lenslocked.com/middleware"
-	"lenslocked.com/models"
-	"lenslocked.com/rand"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/controllers"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/email"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/middleware"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/models"
+	"github.com/PIYAtGitHub/GoLang-LensLocked/rand"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
