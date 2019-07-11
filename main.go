@@ -24,7 +24,7 @@ func main() {
 	dbCfg := cfg.Database
 
 	port := os.Getenv("PORT")
-
+	fmt.Println("LOG: >>>>> ", port)
 	if port == "" {
 		fmt.Println("$PORT must be set")
 	}
